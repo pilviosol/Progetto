@@ -1,0 +1,19 @@
+#title {
+    position:absolute;
+    top:50px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:100px;
+    font-family:'Roboto Mono', monospace;
+    color:white;
+}
+
+#wheelContainer {
+    position:absolute;
+    left:50%;
+    top:35%;
+    transform: translateX(-50%);
+    width: 400;
+    height: 400;
+    border-radius: 50%;
+}
