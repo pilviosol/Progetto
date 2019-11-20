@@ -1,10 +1,11 @@
 import numpy as np
-import skimage
+#import skimage
 import PIL
 from PIL import Image
 
 rgbCircle = [[255, 255, 0],[255, 132, 0],[255, 0, 0],[247, 0, 64],[239, 2, 126],[131, 1, 126],[19, 0, 123], [10, 82, 165],[0, 159, 197],[0, 147, 126],[0, 140, 57], [130, 198, 28], [255,255,255]]
 rgbCircle_palette = [255, 255, 0 ,255, 132, 0 ,255, 0, 0, 247, 0, 64 ,239, 2, 126 ,131, 1, 126 ,19, 0, 123, 10, 82, 165 ,0, 159, 197 ,0, 147, 126 ,0, 140, 57, 130, 198, 28]
+newColors = [[0 for x in range(3)] for y in range(12)]
 
 # CREATE NEW PALETTE WITH A FUNCTION
 
@@ -24,7 +25,9 @@ def nearest_color (color):
 new_palette = [0 for x in range(36)]
 
 for i in range(12):
-    new_palette[i*3, (i*3)+1, (i*3)+2] = nearest_color(palette[i*3, (i*3)+1, (i*3)+2])
+    new_palette[i*3] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[0]
+    new_palette[(i*3)+1] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[1]
+    new_palette[(i*3)+2] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[2]
 
 # QUANTIZATION TO A GIVEN COLOR PALETTE
 
