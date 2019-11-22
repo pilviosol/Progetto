@@ -1,35 +1,50 @@
 import numpy as np
 #import skimage
+#from skimage import io
 import PIL
-from PIL import Image
+from PIL import Image, ImageEnhance 
 
+# Color sets:
 rgbCircle = [[255, 255, 0],[255, 132, 0],[255, 0, 0],[247, 0, 64],[239, 2, 126],[131, 1, 126],[19, 0, 123], [10, 82, 165],[0, 159, 197],[0, 147, 126],[0, 140, 57], [130, 198, 28], [255,255,255]]
 rgbCircle_palette = [255, 255, 0 ,255, 132, 0 ,255, 0, 0, 247, 0, 64 ,239, 2, 126 ,131, 1, 126 ,19, 0, 123, 10, 82, 165 ,0, 159, 197 ,0, 147, 126 ,0, 140, 57, 130, 198, 28]
-newColors = [[0 for x in range(3)] for y in range(12)]
 
-# CREATE NEW PALETTE WITH A FUNCTION
+newColors = rgbCircle
 
-im = Image.open('prova.jpg')
-camera = im.quantize(colors=12,method=1)
-palette=camera.getpalette()[:36]
+# CREATE NEW PALETTE WITH A FUNCTION: (DOESN'T WORK WELL))
+# Maps the old color palette into a new given
 
-def nearest_color (color):
-    color = np.array(color)
-    new_colors=np.array(rgbCircle)
-    new_color=np.array([0,0,0])
-    for i in range(12):
-        if np.linalg.norm(color-new_colors[i])<np.linalg.norm(color-new_color):
-            new_color=new_colors[i]
-    return new_color
+#im = Image.open('prova.jpg')
+#quantized_prova = im.quantize(colors=12,method=1)
+#palette=quantized_prova.getpalette()[:36]
+#
+#def nearest_color (color):
+#    color = np.array(color)
+#    new_colors=np.array(rgbCircle)
+#    new_color=np.array([0,0,0])
+#    for i in range(12):
+#        if np.linalg.norm(color-new_colors[i])<np.linalg.norm(color-new_color):
+#            new_color=new_colors[i]
+#    return np.ndarray.tolist(new_color)
+#
+#new_palette = [0 for x in range(36)]
+#
+#for i in range(12):
+#    new_palette[i*3] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[0]
+#    new_palette[(i*3)+1] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[1]
+#    new_palette[(i*3)+2] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[2]
 
-new_palette = [0 for x in range(36)]
-
-for i in range(12):
-    new_palette[i*3] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[0]
-    new_palette[(i*3)+1] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[1]
-    new_palette[(i*3)+2] = nearest_color([palette[i*3], palette[(i*3)+1], palette[(i*3)+2]])[2]
-
+#--------------------------------------
 # QUANTIZATION TO A GIVEN COLOR PALETTE
+#--------------------------------------
+
+# Kmeans quantization: this function needs skimage and io from skimage
+#def quantizeKmeans(original): 
+#    arr = original.reshape((-1, 3))
+#    kmeans = KMeans(n_clusters=n_colors, random_state=42).fit(arr)
+#    labels = kmeans.labels_
+#    centers = kmeans.cluster_centers_
+#    less_colors = centers[labels].reshape(original.shape).astype('uint8')
+#    return less_colors
 
 def quantizetopalette(silf, palette, dither=False):
     """Convert an RGB or L mode image to use a given P image's palette."""
@@ -54,47 +69,51 @@ def quantizetopalette(silf, palette, dither=False):
         return silf._makeself(im)
 
 palettedata = [0 for x in range(256)]
-palettedata[:36] = rgbCircle_palette
+palettedata[:36] = rgbCircle_palette # Insert desired color palette
 palimage = Image.new('P', (36, 36))
 palimage.putpalette(palettedata)
-oldimage = Image.open("prova.jpg")
+oldimage = Image.open("flowers.jpg")
+oldimage = oldimage.copy()
 oldimage.show()
-quantized = oldimage.quantize(colors=12,method=1)
-quantized= quantized.convert(mode="RGB")
-#newimage = oldimage.quantize(colors=12,method=1,palette=palimage) # Quantize to a given palette with dithering
-newimage = quantizetopalette(quantized,palimage,dither=False)
-newimage.show()
 
-#----------------------------------------------------------
+colorEnhancer = ImageEnhance.Color(oldimage) # Increase saturation by 10%, MAYBE it brings out "weak" colors
+oldimage = colorEnhancer.enhance(1.1)
+
+oldimage = oldimage.quantize(colors=12,method=1) # Probably not necessary
+oldimage = oldimage.convert(mode="RGB")
+#newimage = oldimage.quantize(colors=12,method=0, palette=palimage) # Quantize to a given palette WITH DITHERING
+newimage = quantizetopalette(oldimage,palimage,dither=False)
+newimage = newimage.convert(mode="RGB")
+newimage.show() 
+
+#----------------------------
+# CALCULATE COLOR PERCENTAGES 
+#----------------------------
 
 vectorimage = np.asarray(newimage)
+vectorimage = vectorimage.copy() # Avoid unwritability
 
-mask0 = vectorimage < 50
-print(mask0)
-
-mask1 = vectorimage==(palette[0],palette[1],palette[2])
-mask2 = vectorimage==(palette[3],palette[4],palette[5])
-mask3 = vectorimage==(palette[6],palette[7],palette[8])
-mask4 = vectorimage==(palette[9],palette[10],palette[11])
-mask5 = vectorimage==(palette[12],palette[13],palette[14])
-mask6 = vectorimage==(palette[15],palette[16],palette[17])
-mask7 = vectorimage==(palette[18],palette[19],palette[20])
-mask8 = vectorimage==(palette[21],palette[22],palette[23])
-mask9 = vectorimage==(palette[24],palette[25],palette[26])
-mask10 = vectorimage==(palette[27],palette[28],palette[29])
-mask11 = vectorimage==(palette[30],palette[31],palette[32])
-mask12 = vectorimage==(palette[33],palette[34],palette[35])
-
-print(mask1)
+mask1  = vectorimage==(newColors[1])
+mask2  = vectorimage==(newColors[2])
+mask3  = vectorimage==(newColors[3])
+mask4  = vectorimage==(newColors[4])
+mask5  = vectorimage==(newColors[5])
+mask6  = vectorimage==(newColors[6])
+mask7  = vectorimage==(newColors[7])
+mask8  = vectorimage==(newColors[8])
+mask9  = vectorimage==(newColors[9])
+mask10 = vectorimage==(newColors[10])
+mask11 = vectorimage==(newColors[11])
+mask12 = vectorimage==(newColors[12])
 
 masks=[mask1,mask2,mask3,mask4,mask5,mask6,mask7,mask8,mask9,mask10,mask11,mask12]
+masks = np.array(masks)
 
-old_colors = [[0 for x in range(3)] for y in range(12)]
+totalColorAmount = np.sum(masks) # Total number of colored pixels 
+
+color_percentages = [0 for x in range(12)]
+
 for i in range(12):
-    old_colors[i] = [palette[i*3], palette[(i*3)+1], palette[(i*3)+2]]
+    color_percentages[i] = (np.sum(masks[i])/totalColorAmount)*100
 
-for i in range(12):
-    vectorimage[masks[i]] = nearest_color(old_colors[i])
-
-masked_image = Image.fromarray(vectorimage)
-masked_image.show()
+print(color_percentages)
