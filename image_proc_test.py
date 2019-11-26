@@ -76,8 +76,8 @@ oldimage = Image.open("flowers.jpg")
 oldimage = oldimage.copy()
 oldimage.show()
 
-colorEnhancer = ImageEnhance.Color(oldimage) # Increase saturation by 10%, MAYBE it brings out "weak" colors
-oldimage = colorEnhancer.enhance(1.1)
+#colorEnhancer = ImageEnhance.Color(oldimage) # Increase saturation by 10%, MAYBE it brings out "weak" colors
+#oldimage = colorEnhancer.enhance(1.1)
 
 oldimage = oldimage.quantize(colors=12,method=1) # Probably not necessary
 oldimage = oldimage.convert(mode="RGB")
@@ -117,3 +117,22 @@ for i in range(12):
     color_percentages[i] = (np.sum(masks[i])/totalColorAmount)*100
 
 print(color_percentages)
+
+# MODES:
+ionian = [0,2,4,5,7,9,11]
+dorian = [0,2,3,5,7,9,10]
+phrygian = [0,1,3,5,7,8,10]
+lydian = [0,2,4,6,7,9,11]
+mixolydian = [0,2,4,5,7,9,10]
+eolian = [0,2,3,5,7,8,10]
+locrian = [0,1,3,5,6,8,10]
+
+order_check = color_percentages
+color_podium = [0 for i in range(12)]
+
+for i in range(12):
+    max_index = np.argmax(order_check, axis=0)
+    order_check[max_index] = -1
+    color_podium[max_index] = i
+
+print(color_podium)
