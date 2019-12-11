@@ -74,7 +74,7 @@ palimage = Image.new('P', (36, 36))
 palimage.putpalette(palettedata)
 oldimage = Image.open("flowers.jpg")
 oldimage = oldimage.copy()
-oldimage.show()
+#oldimage.show()
 
 #colorEnhancer = ImageEnhance.Color(oldimage) # Increase saturation by 10%, MAYBE it brings out "weak" colors
 #oldimage = colorEnhancer.enhance(1.1)
@@ -84,7 +84,7 @@ oldimage = oldimage.convert(mode="RGB")
 #newimage = oldimage.quantize(colors=12,method=0, palette=palimage) # Quantize to a given palette WITH DITHERING
 newimage = quantizetopalette(oldimage,palimage,dither=False)
 newimage = newimage.convert(mode="RGB")
-newimage.show() 
+#newimage.show() 
 
 #----------------------------
 # CALCULATE COLOR PERCENTAGES 
@@ -127,12 +127,25 @@ mixolydian = [0,2,4,5,7,9,10]
 eolian = [0,2,3,5,7,8,10]
 locrian = [0,1,3,5,6,8,10]
 
+modes = [ionian, dorian, phrygian, lydian, mixolydian, eolian]
+modes = np.array(modes)
+
 order_check = color_percentages
 color_podium = [0 for i in range(12)]
+ordered_indexes = [0 for i in range(12)]
 
 for i in range(12):
     max_index = np.argmax(order_check, axis=0)
     order_check[max_index] = -1
     color_podium[max_index] = i
+    ordered_indexes[i] =  max_index
 
-print(color_podium)
+mode = [0 for x in range(7)]
+
+for i in range(7):
+    mode[i] = (ordered_indexes[i]-ordered_indexes[0])%12
+
+mode = np.sort(mode)
+print(mode)
+
+print(modes)
