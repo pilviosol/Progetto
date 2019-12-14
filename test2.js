@@ -39,20 +39,22 @@ function readURL(input) {
   if (input.files && input.files[0]) {
 
     var reader = new FileReader();
-
+    var file  = input.files[0];
     reader.onload = function(e) {
+      background = document.getElementById('body-bg');
       $('.image-upload-wrap').hide();
-      console.log(e)
-      console.log(convertDataURIToBinary(e.target.result))
+      //console.log(convertDataURIToBinary(e.target.result))
       $('.file-upload-image').attr('src', e.target.result);
       $('.file-upload-content').show();
-
-      $('.image-title').html(input.files[0].name);
+      $('body').removeClass('starting-bg')
+      background.classList.remove('initial-bg');
+      background.style.backgroundImage = 'url(' + e.target.result + ')';
     };
 
-    reader.readAsDataURL(input.files[0]);
-
-  } else {
+    reader.readAsDataURL(file);
+  } 
+  
+  else {
     removeUpload();
  
   }
