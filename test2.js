@@ -74,18 +74,6 @@ function readURL(input) {
   
 }
 
-function myCanvas(){
-  var canvas = document.getElementById("myimage");
-  var context = canvas.getContext("2d");
-
-  var img = new Image();
-    img.onload = function() {
-      context.drawImage(img, 100,100)
-    }
-    img.src = e.target.result
-
-}
-
 function removeUpload() {
   $('.file-upload-input').replaceWith($('.file-upload-input').clone());
   $('.file-upload-content').hide();
@@ -97,20 +85,6 @@ $('.image-upload-wrap').bind('dragover', function () {
 	$('.image-upload-wrap').bind('dragleave', function () {
 		$('.image-upload-wrap').removeClass('image-dropping');
 });
-
-var BASE64_MARKER = ';base64,';
-function convertDataURIToBinary(dataURI) {
-  var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length;
-  var base64 = dataURI.substring(base64Index);
-  var raw = window.atob(base64);
-  var rawLength = raw.length;
-  var array = new Uint8Array(new ArrayBuffer(rawLength));
-
-  for(i = 0; i < rawLength; i++) {
-    array[i] = raw.charCodeAt(i);
-  }
-  return array;
-}
 
 
 
