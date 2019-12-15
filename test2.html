@@ -3,9 +3,9 @@
     <link rel="stylesheet" href="test2.css">
     <title>duck sniffa</title>
 </head>
+<div id = "body-bg" class = "initial-bg"></div>
+<body>
 
-<body id = "body-bg" class = "initial-bg">
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script> 
   <style>
       @import url('https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap');
@@ -18,27 +18,21 @@
   </div> 
 
   <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-<div class="file-upload">
-  
-
-  <div class="image-upload-wrap">
-    <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
-    <div class="drag-text">
-      <h3>Drag and drop or browse an image</h3>
+  <div class="file-upload">
+    <div class="image-upload-wrap">
+      <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+      <div class="drag-text">
+        <h3>Drag and drop or browse an image</h3>
+      </div>
+    </div>
+    <div class="file-upload-content">
+      <img class="file-upload-image" src="#" alt="your image" />
+      <canvas id="myimage"></canvas>
+      <div class="new-image-wrap">
+        <button type="button" onclick="removeUpload()" class="change-image">New image </button>
+      </div>
     </div>
   </div>
-  <div class="file-upload-content">
-    <img class="file-upload-image" src="#" alt="your image" />
-    <canvas id="myimage"></canvas>
-    <div class="new-image-wrap">
-      <button type="button" onclick="removeUpload()" class="change-image">New image </button>
-    </div>
-  </div>
-</div>
-
-
-
-
 
   <script src="test2.js"></script>
 </body>

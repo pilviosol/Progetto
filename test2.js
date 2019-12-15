@@ -48,13 +48,12 @@ function readURL(input) {
     reader.onload = function(e) {
       background = document.getElementById('body-bg');
       $('.image-upload-wrap').hide();
-      //console.log(convertDataURIToBinary(e.target.result))
-      //console.log(e.target.result)
       $('.file-upload-image').attr('src', e.target.result);
       $('.file-upload-content').show();
       $('body').removeClass('starting-bg')
-      //background.classList.remove('initial-bg');
-      //background.style.backgroundImage = 'url(' + e.target.result + ')';
+      background.classList.remove('initial-bg');
+      background.classList.add('updated-bg');
+      background.style.backgroundImage = 'url(' + e.target.result + ')';
       var canvas = document.getElementById("myimage");
       var context = canvas.getContext("2d");
       var img = new Image();

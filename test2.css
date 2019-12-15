@@ -1,10 +1,19 @@
+body, html {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 .title {
-    position:relative;
+    position: relative;
     width: 661;
     font-size:100px;
     font-family:'Roboto Mono', monospace;
     color:white;
     margin: 0 auto;
+    text-shadow: 2px 2px 4px #000000;
 }
 
 #body-bg {
@@ -12,15 +21,37 @@
 }
 
 .initial-bg {
+  position: fixed;
   background-color: black;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  z-index: -1;
+}
+
+.updated-bg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(10px);
+  filter: grayscale(50%);
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  z-index: -1;
 }
 
 .color-wheel-wrap {
-    position:relative;
-    width: 400;
-    height: 400;
-    border-radius: 50%;
-    margin: 0 auto;
+  position: relative;
+  width: 400;
+  height: 400;
+  border-radius: 50%;
+  margin: 0 auto;
 }
 
 #myimage {
@@ -31,13 +62,13 @@
 }
 
 .file-upload {
-    position: relative;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0);
-    width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
+  position: relative;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0);
+  width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
 .file-upload-content {
   display: none;
@@ -58,14 +89,15 @@
 .image-upload-wrap {
   margin-top: 20px;
   background-color: black;
-  border: 4px dashed white;
+  border: 3px dashed white;
+  border-radius: 5px;
   position: relative;
 }
 
 .image-dropping,
 .image-upload-wrap:hover {
   background-color: rgb(66, 66, 66);
-  border: 4px dashed #ffffff;
+  border: 3px dashed #ffffff;
 }
 
 .new-image-wrap {
@@ -80,7 +112,6 @@
 .drag-text h3 {
   font-weight: 100;
   font-family:'Roboto Mono', monospace;
-  text-transform: uppercase;
   color: white;
   padding: 60px 0;
 }
