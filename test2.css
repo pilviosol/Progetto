@@ -47,8 +47,6 @@
 }
 
 #myimage {
-  max-height: 400px;
-  max-width: 400px;
   margin: 20px;
   border-radius: 5px;
 }
@@ -107,13 +105,6 @@
   color: white;
   padding: 60px 0;
 }
-
-/*.file-upload-image {
-  max-height: 400px;
-  max-width: 400px;
-  margin: 20px;
-  border-radius: 5px;
-}*/
 
 .change-image {
   width: 200px;
