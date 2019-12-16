@@ -38,6 +38,10 @@ var chart = new Chart(ctx, {
 
 rgbCircle = [[255, 255, 0],[255, 132, 0],[255, 0, 0],[247, 0, 64],[239, 2, 126],[131, 1, 126],[19, 0, 123], [10, 82, 165],[0, 159, 197],[0, 147, 126],[0, 140, 57], [130, 198, 28], [255,255,255]];
 
+var imageData;
+var width;
+var height;
+
 function readURL(input) {
   if (input.files && input.files[0]) {
     var reader = new FileReader();
@@ -54,18 +58,21 @@ function readURL(input) {
       var img = new Image();
       img.onload = function() {
         if (img.width > img.height) {
-          canvas.width = 400;
-          var height = Math.round((img.height*400)/(img.width));
+          width = 400;
+          canvas.width = width;
+          height = Math.round((img.height*400)/(img.width));
           canvas.height = height;
-          context.drawImage(img,0,0,400,height)
+          context.drawImage(img,0,0,width,height)
         }
         else {
-          canvas.height = 400;
-          var width = Math.round((img.width*400)/(img.height));
+          height = 400;
+          canvas.height = height;
+          width = Math.round((img.width*400)/(img.height));
           canvas.width = width;
-          context.drawImage(img,0,0,width,400)
+          context.drawImage(img,0,0,width,height)
         }
-        
+        imageData = context.getImageData(0,0,width,height).data;
+        console.log(imageData[0,0,0,4]);
       }
       img.src = e.target.result
     };
