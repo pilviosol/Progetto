@@ -36,24 +36,24 @@ var chart = new Chart(ctx, {
 }); 
 
 
-rgbCircle = [[255, 255, 0],[255, 132, 0],[255, 0, 0],[247, 0, 64],[239, 2, 126],[131, 1, 126],[19, 0, 123], [10, 82, 165],[0, 159, 197],[0, 147, 126],[0, 140, 57], [130, 198, 28], [255,255,255]];
+rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28], [0, 0, 0], [23, 23, 23], [46, 46, 46], [69, 69, 69], [92, 92, 92], [115, 115, 115], [138, 138, 138], [161, 161, 161], [184, 184, 184], [207, 207, 207], [230, 230, 230], [255, 255, 255]];
 
 var imageData;
 var width;
 var height;
 var opts = {
-	colors: 8,               // desired palette size
+	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
 	boxSize: [64,64],        // subregion dims (if method = 2)
 	boxPxls: 2,              // min-population threshold (if method = 2)
-	initColors: 4096,        // # of top-occurring colors  to start with (if method = 1)
+	initColors: 4096,        // # of top-occurring colors to start with (if method = 1)
 	minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
 	dithKern: null,          // dithering kernel name, see available kernels in docs below
 	dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
 	dithSerp: false,         // enable serpentine pattern dithering
-	palette: [],             // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
-	reIndex: false,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
-	useCache: true,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
+	palette: rgbCircle,      // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
+	reIndex: true,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
+	useCache: false,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
 	cacheFreq: 10,           // min color occurance count needed to qualify for caching
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
   };
@@ -63,7 +63,7 @@ function readURL(input) {
     var reader = new FileReader();
     var file  = input.files[0];
     reader.onload = function(e) {
-      background = document.getElementById('body-bg');
+      background = document.getElementById('dynamic-background');
       $('.image-upload-wrap').hide();
       $('.file-upload-content').show();
       background.classList.remove('initial-bg');
