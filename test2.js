@@ -1055,7 +1055,7 @@ function readURL(input) {
   
   // reduce images
   //var outA = q.reduce(imgA),
-    //outB = q.reduce(imgB),
+	//outB = q.reduce(imgB),
     //outC = q.reduce(imgC);
   
 
