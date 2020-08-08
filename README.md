@@ -11,3 +11,7 @@ Esempio: se il secondo colore più presente sta a un semitono dal primo, gli uni
 CHORD PROGRESSION: determinata dal colore più presente. Se i colori che rappresentano intervalli di 2a, 4a e 6a sono abbastanza presenti (superano una certa percentuale) possiamo aggiungere etensioni agli accordi. 
 
 POLIRITMO: determinato dalle percentuali dei colori, dobbiamo decidere un set di poliritmi che non siano eccessivamente complessi. 
+
+## ALTERNATIVA
+
+L'immagine viene "suonata" passando il mouse sopra i vari colori. Tonalità e modo sono determinati come sopra, ogni colore dell'immagine suona un accordo con una root note diversa.

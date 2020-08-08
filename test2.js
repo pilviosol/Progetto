@@ -40,42 +40,51 @@ rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 1
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
 var palette = [];
 
+/*
+* Generate a color palette containing the colors in the color circle AND THEIR SHADES 
+* (different luminance and saturation values), plus some greys (for aesthetical purposes).
+* We cannot use the color wheel as it is because we would loose too much information about hues
+* (a lot of colors mapped into greys).
+*/
 for(i=0; i<12; i++) {
   var currentColor = hslCircle[i];
-  var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0];
+  var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0]; // Extract hue
   for(j=1; j<6; j++) { // saturation values
     for(k=1; k<5; k++) { // luminance values
       palette.push(hslToRgb(hue, (2*j)/10, (2*k)/10));
-      console.log([hue, (2*j)/10, (2*k)/10]);
-      console.log(hslToRgb(hue, (2*j)/10, (2*k)/10));
+      //console.log([hue, (2*j)/10, (2*k)/10]);
+      //console.log(hslToRgb(hue, (2*j)/10, (2*k)/10));
     }
   }
 }
 for(h=0; h<6; h++) { // greys
   palette.push([51*h, 51*h, 51*h]);
 }
-console.log(palette);
+//console.log(palette);
 
 var imageData;
 var width;
 var height;
+var result_palette;
+var most_present_color = [0, 0, 0];
 var opts = {
 	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
-	boxSize: [64,64],        // subregion dims (if method = 2)
-	boxPxls: 2,              // min-population threshold (if method = 2)
-	initColors: 4096,        // # of top-occurring colors to start with (if method = 1)
+	boxSize: [64,64],        // subregion dims (if method == 2)
+	boxPxls: 2,              // min-population threshold (if method == 2)
+	initColors: 4096,        // # of top-occurring colors to start with (if method == 1)
 	minHueCols: 0,           // # of colors per hue group to evaluate regardless of counts, to retain low-count hues
 	dithKern: null,          // dithering kernel name, see available kernels in docs below
 	dithDelta: 0,            // dithering threshhold (0-1) e.g: 0.05 will not dither colors with <= 5% difference
 	dithSerp: false,         // enable serpentine pattern dithering
-	palette: palette,      // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
-	reIndex: true,          // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
-	useCache: false,          // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
+	palette: palette,        // a predefined palette to start with in r,g,b tuple format: [[r,g,b],[r,g,b]...]
+	reIndex: true,           // affects predefined palettes only. if true, allows compacting of sparsed palette once target palette size is reached. also enables palette sorting.
+	useCache: false,         // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
 	cacheFreq: 10,           // min color occurance count needed to qualify for caching
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
   };
 
+// Handle input image:
 function readURL(input) {
   if (input.files && input.files[0]) {
     var reader = new FileReader();
@@ -91,6 +100,7 @@ function readURL(input) {
       var context = canvas.getContext("2d");
       var img = new Image();
       img.onload = function() {
+        // Limit the dimensions of the image to 400x400
         if (img.width > img.height) {
           width = 400;
           canvas.width = width;
@@ -106,20 +116,39 @@ function readURL(input) {
           context.drawImage(img,0,0,width,height)
         }
         imageData = context.getImageData(0,0,width,height).data;
-		//console.log(imageData);
+		    //console.log(imageData);
 		  
-		var q = new RgbQuant(opts);
-		q.sample(imageData);
-		var outA = q.reduce(imageData);
-		//console.log(outA);
+		    var q = new RgbQuant(opts);
+		    q.sample(imageData);
+		    var outA = q.reduce(imageData);
+		    //console.log(outA);
 	
-		var uint8clamped = new Uint8ClampedArray(outA.buffer)
-		var DAT = new ImageData(uint8clamped, width, height);
-		//console.log(DAT);
-		context.putImageData(DAT, 0, 0);
-	  }
+        var uint8clamped = new Uint8ClampedArray(outA.buffer);
+		    var DAT = new ImageData(uint8clamped, width, height);
+		    //console.log(DAT);
+        context.putImageData(DAT, 0, 0);
+        
+        /* 
+        * Obtain color list from quantized image. 
+        * tuples if true will return an array of [r,g,b] triplets, otherwise a Uint8Array is returned by default. 
+        * noSort if true will disable palette sorting by hue/luminance and leaves it ordered from highest to lowest color occurrence counts.
+        */
+        var tuples = true;
+        var noSort = true;
+        result_palette = q.palette(tuples, noSort); 
+
+        var i = 0;
+        while (i<result_palette.length) { // Remove greys from color list
+          if (result_palette[i][0] == result_palette[i][1] && result_palette[i][1] == result_palette[i][2]) {
+            result_palette.splice(i, 1);
+          }
+
+          else i++;
+        }
+        //console.log(result_palette);
+	    }
 	  
-      img.src = e.target.result
+      img.src = e.target.result;
     };
     
     reader.readAsDataURL(file);
