@@ -1,3 +1,4 @@
+// Color Wheel:
 var ctx = document.getElementById('colorWheel').getContext('2d');
 var chart = new Chart(ctx, {
   
@@ -7,7 +8,7 @@ var chart = new Chart(ctx, {
     labels: ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" ],
     datasets: [
       {
-        backgroundColor: [ 'rgb(255, 255, 0)',
+        /*backgroundColor: [ 'rgb(255, 255, 0)',
                            'rgb(255, 132, 0)',
                            'rgb(255, 0, 0)',
                            'rgb(247, 0, 64)',
@@ -19,6 +20,19 @@ var chart = new Chart(ctx, {
                            'rgb(0, 147, 126)',
                            'rgb(0, 140, 57)', 
                            'rgb(130, 198, 28)'
+                          ],*/
+        backgroundColor: [ 'rgb(255, 0, 0)',
+                           'rgb(255, 127, 0)',
+                           'rgb(255, 255, 0)',
+                           'rgb(127, 255, 0)',
+                           'rgb(0, 255, 0)',
+                           'rgb(0, 255, 127)',
+                           'rgb(0, 255, 255)',                                 
+                           'rgb(0, 127, 255)',
+                           'rgb(0, 0, 255)',                                   
+                           'rgb(127, 0, 255)',
+                           'rgb(255, 0, 255)', 
+                           'rgb(255, 0, 127)'
                           ],
         borderWidth: 5,
         data: [1,1,1,1,1,1,1,1,1,1,1,1],
@@ -35,37 +49,38 @@ var chart = new Chart(ctx, {
 
 }); 
 
-
-rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28], [0, 0, 0], [23, 23, 23], [46, 46, 46], [69, 69, 69], [92, 92, 92], [115, 115, 115], [138, 138, 138], [161, 161, 161], [184, 184, 184], [207, 207, 207], [230, 230, 230], [255, 255, 255]];
+// Colors in the Color Wheel:
+//rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28], [0, 0, 0], [23, 23, 23], [46, 46, 46], [69, 69, 69], [92, 92, 92], [115, 115, 115], [138, 138, 138], [161, 161, 161], [184, 184, 184], [207, 207, 207], [230, 230, 230], [255, 255, 255]];
+rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
+var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // Filled in the next step
 var palette = [];
 
 /*
 * Generate a color palette containing the colors in the color circle AND THEIR SHADES 
 * (different luminance and saturation values), plus some greys (for aesthetical purposes).
 * We cannot use the color wheel as it is because we would loose too much information about hues
-* (a lot of colors mapped into greys).
+* (a lot of colors become greys).
 */
 for(i=0; i<12; i++) {
-  var currentColor = hslCircle[i];
+  var currentColor = rgbCircle[i];
   var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0]; // Extract hue
+  hues[i] = Math.round(255 * hue); // Fill hues array
   for(j=1; j<6; j++) { // saturation values
     for(k=1; k<5; k++) { // luminance values
       palette.push(hslToRgb(hue, (2*j)/10, (2*k)/10));
-      //console.log([hue, (2*j)/10, (2*k)/10]);
-      //console.log(hslToRgb(hue, (2*j)/10, (2*k)/10));
     }
   }
 }
 for(h=0; h<6; h++) { // greys
   palette.push([51*h, 51*h, 51*h]);
 }
-//console.log(palette);
 
 var imageData;
 var width;
 var height;
-var result_palette;
+var resulting_palette;
+var resulting_colors = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
 var most_present_color = [0, 0, 0];
 var opts = {
 	colors: 24,              // desired palette size
@@ -100,7 +115,7 @@ function readURL(input) {
       var context = canvas.getContext("2d");
       var img = new Image();
       img.onload = function() {
-        // Limit the dimensions of the image to 400x400
+        // Limit the dimensions of the canvas to 400x400 mantaining ratio
         if (img.width > img.height) {
           width = 400;
           canvas.width = width;
@@ -116,18 +131,13 @@ function readURL(input) {
           context.drawImage(img,0,0,width,height)
         }
         imageData = context.getImageData(0,0,width,height).data;
-		    //console.log(imageData);
-		  
+        // Quantize image
 		    var q = new RgbQuant(opts);
 		    q.sample(imageData);
 		    var outA = q.reduce(imageData);
-		    //console.log(outA);
-	
         var uint8clamped = new Uint8ClampedArray(outA.buffer);
 		    var DAT = new ImageData(uint8clamped, width, height);
-		    //console.log(DAT);
         context.putImageData(DAT, 0, 0);
-        
         /* 
         * Obtain color list from quantized image. 
         * tuples if true will return an array of [r,g,b] triplets, otherwise a Uint8Array is returned by default. 
@@ -135,17 +145,28 @@ function readURL(input) {
         */
         var tuples = true;
         var noSort = true;
-        result_palette = q.palette(tuples, noSort); 
+        resulting_palette = q.palette(tuples, noSort); 
 
         var i = 0;
-        while (i<result_palette.length) { // Remove greys from color list
-          if (result_palette[i][0] == result_palette[i][1] && result_palette[i][1] == result_palette[i][2]) {
-            result_palette.splice(i, 1);
+        var j = 0;
+        while (i<resulting_palette.length) { // Remove greys from color list
+          if (resulting_palette[i][0] == resulting_palette[i][1] && resulting_palette[i][1] == resulting_palette[i][2]) {
+            resulting_palette.splice(i, 1);
           }
 
-          else i++;
+          else { // Extract hue and store it if it hasn't been found yet
+            var current_hue = Math.round(255 * rgbToHsl(resulting_palette[i][0], resulting_palette[i][1], resulting_palette[i][2])[0]);
+            /*if (j==0 || current_hue - resulting_colors[j-1] != 0) {
+              resulting_colors[j] = current_hue;
+              j++;
+            }*/
+            resulting_colors[i] = current_hue;
+            i++;
+          }
         }
-        //console.log(result_palette);
+        resulting_colors = [...new Set(resulting_colors)]; // Remove duplicates
+        if ((resulting_colors[resulting_colors.length - 1]) == -1) {resulting_colors.pop();} // Delete last element if NaN
+        console.log(resulting_colors);
 	    }
 	  
       img.src = e.target.result;
