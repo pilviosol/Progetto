@@ -64,7 +64,7 @@ var palette = [];
 * (a lot of colors become greys).
 */
 for(i=0; i<12; i++) {
-  var currentColor = rgbCircle[i];
+  var currentColor = hslCircle[i];
   var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0]; // Extract hue
   hues[i] = Math.round(255 * hue); // Fill hues array
   for(j=1; j<6; j++) { // saturation values
@@ -146,7 +146,7 @@ function readURL(input) {
         */
         var tuples = true;
         var noSort = true;
-        resulting_palette = q.palette(tuples, noSort); 
+        resulting_palette = q.palette(tuples, noSort); //estrae i colori dall'immagine
 
         var i = 0;
         var j = 0;
@@ -168,6 +168,9 @@ function readURL(input) {
         resulting_colors = [...new Set(resulting_colors)]; // Remove duplicates
         if ((resulting_colors[resulting_colors.length - 1]) == -1) {resulting_colors.pop();} // Delete last element if NaN
         console.log(resulting_colors);
+        console.log(resulting_colors[0]);
+        console.log(hues);
+        
 	    }
 	  
       img.src = e.target.result;
@@ -258,3 +261,5 @@ function hslToRgb(h, s, l) {
 
   return [ r * 255, g * 255, b * 255 ];
 }
+
+
