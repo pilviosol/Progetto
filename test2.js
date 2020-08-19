@@ -77,6 +77,9 @@ for(h=0; h<6; h++) { // greys
   palette.push([51*h, 51*h, 51*h]);
 }
 
+// Image data and quantization data
+var canvas;
+var context;
 var imageData;
 var width;
 var height;
@@ -100,6 +103,8 @@ var opts = {
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
   };
 
+  var eyedropperIsActive = false;
+
 // Handle input image:
 function readURL(input) {
   if (input.files && input.files[0]) {
@@ -112,8 +117,8 @@ function readURL(input) {
       background.classList.remove('initial-bg');
       background.classList.add('updated-bg');
       background.style.backgroundImage = 'url(' + e.target.result + ')';
-      var canvas = document.getElementById("myimage");
-      var context = canvas.getContext("2d");
+      canvas = document.getElementById("myimage");
+      context = canvas.getContext("2d");
       var img = new Image();
       img.onload = function() {
         // Limit the dimensions of the canvas to 400x400 mantaining ratio
@@ -139,6 +144,7 @@ function readURL(input) {
         var uint8clamped = new Uint8ClampedArray(outA.buffer);
 		    var DAT = new ImageData(uint8clamped, width, height);
         context.putImageData(DAT, 0, 0);
+
         /* 
         * Obtain color list from quantized image. 
         * tuples if true will return an array of [r,g,b] triplets, otherwise a Uint8Array is returned by default. 
@@ -146,7 +152,7 @@ function readURL(input) {
         */
         var tuples = true;
         var noSort = true;
-        resulting_palette = q.palette(tuples, noSort); //estrae i colori dall'immagine
+        resulting_palette = q.palette(tuples, noSort); 
 
         var i = 0;
         var j = 0;
@@ -166,18 +172,28 @@ function readURL(input) {
           }
         }
         resulting_colors = [...new Set(resulting_colors)]; // Remove duplicates
-        if ((resulting_colors[resulting_colors.length - 1]) == -1) {resulting_colors.pop();} // Delete last element if NaN
+        if ((resulting_colors[resulting_colors.length - 1]) == -1) {resulting_colors.pop();} // Delete last element if -1
         console.log(resulting_colors);
-        console.log(resulting_colors[0]);
-        console.log(hues);
-        
 	    }
 	  
       img.src = e.target.result;
+      
+      // Eyedropper functionalities:
+
+      $("#myimage").mousemove(function (e) {
+      var mouseX = parseInt(e.offsetX);
+      var mouseY = parseInt(e.offsetY);
+      var pxData = context.getImageData(mouseX, mouseY, 1, 1);
+      //var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
+      //console.log(eyeDropperColor);
+
+      $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
+      console.log(mouseX + "," + mouseY);
+      });
+      
     };
     
     reader.readAsDataURL(file);
-    
   } 
   
   else {
@@ -191,6 +207,7 @@ function removeUpload() {
   $('.file-upload-content').hide();
   $('.image-upload-wrap').show();
 }
+
 $('.image-upload-wrap').bind('dragover', function () {
 		$('.image-upload-wrap').addClass('image-dropping');
 	});
@@ -261,5 +278,3 @@ function hslToRgb(h, s, l) {
 
   return [ r * 255, g * 255, b * 255 ];
 }
-
-
