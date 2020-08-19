@@ -184,11 +184,11 @@ function readURL(input) {
       var mouseX = parseInt(e.offsetX);
       var mouseY = parseInt(e.offsetY);
       var pxData = context.getImageData(mouseX, mouseY, 1, 1);
-      //var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
-      //console.log(eyeDropperColor);
-
+      var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
+      console.log("Mouse position: " + mouseX + "," + mouseY);
+      var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
+      console.log("Hue: " + playingColor);
       $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-      console.log(mouseX + "," + mouseY);
       });
       
     };
