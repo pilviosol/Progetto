@@ -1,5 +1,12 @@
 // Color Wheel:
 //ollare
+var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
+var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
+var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
+var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
+var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
+var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
+var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
 var ctx = document.getElementById('colorWheel').getContext('2d');
 var chart = new Chart(ctx, {
   
