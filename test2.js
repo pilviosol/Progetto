@@ -101,9 +101,18 @@ var opts = {
 	useCache: false,         // enables caching for perf usually, but can reduce perf in some cases, like pre-def palettes
 	cacheFreq: 10,           // min color occurance count needed to qualify for caching
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
-  };
+};
 
-  var eyedropperIsActive = false;
+// Create web audio API context:
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// create Oscillator and Gain nodes:
+var osc = audioCtx.createOscillator();
+var g = audioCtx.createGain();
+g.gain.value = 0;
+osc.type = 'sawtooth';
+osc.connect(g);
+g.connect(audioCtx.destination); 
+osc.start();
 
 // Handle input image:
 function readURL(input) {
@@ -177,10 +186,10 @@ function readURL(input) {
 	    }
 	  
       img.src = e.target.result;
-      
+
       // Eyedropper functionalities:
 
-      $("#myimage").mousemove(function (e) {
+      $("#myimage").click(function (e) {
       var mouseX = parseInt(e.offsetX);
       var mouseY = parseInt(e.offsetY);
       var pxData = context.getImageData(mouseX, mouseY, 1, 1);
@@ -189,6 +198,8 @@ function readURL(input) {
       var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
       console.log("Hue: " + playingColor);
       $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
+      g.gain.value = 1;
+      osc.frequency.value = playingColor; // value in hertz
       });
       
     };
@@ -206,6 +217,7 @@ function removeUpload() {
   $('.file-upload-input').replaceWith($('.file-upload-input').clone());
   $('.file-upload-content').hide();
   $('.image-upload-wrap').show();
+  g.gain.value = 0;
 }
 
 $('.image-upload-wrap').bind('dragover', function () {
