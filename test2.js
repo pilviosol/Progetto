@@ -1,5 +1,6 @@
 // Color Wheel:
 //ollare
+//modes in binary form
 var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
 var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
 var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
@@ -7,6 +8,17 @@ var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
 var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
 var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
 var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
+
+//function to rotate arrays
+function arrayRotate(arr, count) {
+  count -= arr.length * Math.floor(count / arr.length);
+  arr.push.apply(arr, arr.splice(0, count));
+  return arr;
+}
+//all values
+var values    = [0,21,43,64,85,106,128,149,170,191,213,234];
+
+
 var ctx = document.getElementById('colorWheel').getContext('2d');
 var chart = new Chart(ctx, {
   
@@ -181,6 +193,56 @@ function readURL(input) {
         resulting_colors = [...new Set(resulting_colors)]; // Remove duplicates
         if ((resulting_colors[resulting_colors.length - 1]) == -1) {resulting_colors.pop();} // Delete last element if -1
         console.log(resulting_colors);
+        //x determines the rotation of the array to be confronted depending on the most prominent value
+        x=0;
+        if (resulting_colors[0]==0){x=0};
+        if (resulting_colors[0]==21){x=1};
+        if (resulting_colors[0]==43){x=2};
+        if (resulting_colors[0]==64){x=3};
+        if (resulting_colors[0]==85){x=4};
+        if (resulting_colors[0]==106){x=5};
+        if (resulting_colors[0]==128){x=6};
+        if (resulting_colors[0]==149){x=7};
+        if (resulting_colors[0]==170){x=8};
+        if (resulting_colors[0]==191){x=9};
+        if (resulting_colors[0]==213){x=10};
+        if (resulting_colors[0]==234){x=11};
+  
+        console.log(x);
+        //values2 is the array rotated
+        values2 = arrayRotate(values, x);
+        console.log(values2);
+        //now we'll multiplicate the values of values2 elementwise with the binary format of the modes in order to
+        //select only the values that are present on that scale. This because later we'll confont those values with the
+        // values in the array resulting_colors to see what's the most similar mode
+
+        //here's the example with ionian scale
+        ionian_values=[0,0,0,0,0,0,0,0,0,0,0,0];
+        for (i=0;i<12;i++) {
+          //elementwise multiplication
+          ionian_values[i]=values2[i]*ionian[i];
+        };
+        console.log(ionian_values);
+
+        //here's how we decide what's the most similar mode: we confront the values of resulting_colors with, for example,
+        //ionian_values. For each value that is present in both scales, the punteggio increases by one.
+        //We'll do it for every mode and then select the max "punteggio" to decide the mode
+        punteggio_ionian=0;
+        for (i=0;i<resulting_colors.length;i++)
+        {
+          if (resulting_colors[i]==ionian_values[1] || resulting_colors[i]==ionian_values[2]||
+            resulting_colors[i]==ionian_values[3] || resulting_colors[i]==ionian_values[4]||
+            resulting_colors[i]==ionian_values[5] || resulting_colors[i]==ionian_values[6]||
+            resulting_colors[i]==ionian_values[7] || resulting_colors[i]==ionian_values[8]||
+            resulting_colors[i]==ionian_values[9] || resulting_colors[i]==ionian_values[10]||
+            resulting_colors[i]==ionian_values[11] || resulting_colors[i]==ionian_values[0])
+            {punteggio_ionian++};
+        };
+        console.log(punteggio_ionian);
+        
+        values    = [0,21,43,64,85,106,128,149,170,191,213,234];
+        
+
 	    }
 	  
       img.src = e.target.result;
