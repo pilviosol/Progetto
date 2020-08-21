@@ -51,11 +51,10 @@ var chart = new Chart(ctx, {
 }); 
 
 // Colors in the Color Wheel:
-//rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28], [0, 0, 0], [23, 23, 23], [46, 46, 46], [69, 69, 69], [92, 92, 92], [115, 115, 115], [138, 138, 138], [161, 161, 161], [184, 184, 184], [207, 207, 207], [230, 230, 230], [255, 255, 255]];
 rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
 var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // Filled in the next step
-var palette = [];
+var palette = []; // Built in the next step
 
 /*
 * Generate a color palette containing the colors in the color circle AND THEIR SHADES 
@@ -106,13 +105,25 @@ var opts = {
 // Create web audio API context:
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 // create Oscillator and Gain nodes:
-var osc = audioCtx.createOscillator();
+var osc1 = audioCtx.createOscillator();
+var osc2 = audioCtx.createOscillator();
+var osc3 = audioCtx.createOscillator();
+var osc4 = audioCtx.createOscillator();
+osc1.type = 'sawtooth';
+osc2.type = 'sawtooth';
+osc3.type = 'sawtooth';
+osc4.type = 'sawtooth';
 var g = audioCtx.createGain();
 g.gain.value = 0;
-osc.type = 'sawtooth';
-osc.connect(g);
+osc1.connect(g);
+osc2.connect(g);
+osc3.connect(g);
+osc4.connect(g);
 g.connect(audioCtx.destination); 
-osc.start();
+osc1.start();
+osc2.start();
+osc3.start();
+osc4.start();
 
 // Handle input image:
 function readURL(input) {
@@ -195,11 +206,25 @@ function readURL(input) {
       var pxData = context.getImageData(mouseX, mouseY, 1, 1);
       var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
       console.log("Mouse position: " + mouseX + "," + mouseY);
-      var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
-      console.log("Hue: " + playingColor);
-      $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-      g.gain.value = 1;
-      osc.frequency.value = playingColor; // value in hertz
+      var grey = false;
+      if (eyeDropperColor[0] == eyeDropperColor[1] && eyeDropperColor[0] == eyeDropperColor[2]) {
+        grey = true;
+      }
+      if (!grey) {
+        var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
+        console.log("Hue: " + playingColor);
+        $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
+        g.gain.value = 0.5;
+        var index = hues.indexOf(playingColor);
+        osc1.frequency.value = 440*Math.pow(2, index/12); // value in hertz
+        osc2.frequency.value = 440*Math.pow(2, (index + 2)/12);
+        osc3.frequency.value = 440*Math.pow(2, (index + 4)/12);
+        //osc4.frequency.value = 440*Math.pow(2, (index + 5)/12);
+      }
+      else {
+        g.gain.value = 0;
+      }
+      
       });
       
     };
