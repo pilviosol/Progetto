@@ -214,11 +214,14 @@ function readURL(input) {
         var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
         console.log("Hue: " + playingColor);
         $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-        g.gain.value = 0.5;
+        //g.gain.value = 0.5;
         var index = hues.indexOf(playingColor);
         osc1.frequency.value = 440*Math.pow(2, index/12); // value in hertz
         osc2.frequency.value = 440*Math.pow(2, (index + 2)/12);
         osc3.frequency.value = 440*Math.pow(2, (index + 4)/12);
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
         //osc4.frequency.value = 440*Math.pow(2, (index + 5)/12);
       }
       else {
