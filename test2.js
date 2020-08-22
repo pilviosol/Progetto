@@ -248,10 +248,10 @@ function readURL(input) {
         * The mode with the highest score is the chosen one.
         */
         resulting_scale = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        for (i=0; i<hue_hist.length; i++) {
-          resulting_scale[hues_r.indexOf(hue_hist[i][0])] = hue_hist[i][1] //12 - hue_hist.indexOf(hue_hist[i]);      
+        for (i=0; i<hue_hist.length; i++) { // Put the number of occurrences in place of the present notes/colors
+          resulting_scale[hues_r.indexOf(hue_hist[i][0])] = hue_hist[i][1] //alternatively: 12 - hue_hist.indexOf(hue_hist[i]);      
         }
-        var scores = [];
+        var scores = []; // Build array of scores
         for (i = 0; i < 7; i++) {
           var current_score = 0;
           for (j = 0; j < 12; j++) {
@@ -259,7 +259,7 @@ function readURL(input) {
           }
           scores.push(current_score);
         }
-        resulting_mode = modes[indexOfMax(scores)];
+        resulting_mode = modes[indexOfMax(scores)]; // Pick the mode with the highest scores
         console.log(resulting_mode);
 	    }
 	  
