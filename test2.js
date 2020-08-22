@@ -1,24 +1,4 @@
 // Color Wheel:
-//ollare
-//modes in binary form
-var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
-var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
-var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
-var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
-var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
-var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
-var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
-
-//function to rotate arrays
-function arrayRotate(arr, count) {
-  count -= arr.length * Math.floor(count / arr.length);
-  arr.push.apply(arr, arr.splice(0, count));
-  return arr;
-}
-//all values
-var values    = [0,21,43,64,85,106,128,149,170,191,213,234];
-
-
 var ctx = document.getElementById('colorWheel').getContext('2d');
 var chart = new Chart(ctx, {
   
@@ -40,7 +20,7 @@ var chart = new Chart(ctx, {
                            'rgb(0, 147, 126)',
                            'rgb(0, 140, 57)', 
                            'rgb(130, 198, 28)'
-                          ],*/
+                          ], // RGB Circle*/
         backgroundColor: [ 'rgb(255, 0, 0)',
                            'rgb(255, 127, 0)',
                            'rgb(255, 255, 0)',
@@ -53,7 +33,7 @@ var chart = new Chart(ctx, {
                            'rgb(127, 0, 255)',
                            'rgb(255, 0, 255)', 
                            'rgb(255, 0, 127)'
-                          ],
+                          ], // HSL Circle
         borderWidth: 5,
         data: [1,1,1,1,1,1,1,1,1,1,1,1],
         
@@ -72,14 +52,15 @@ var chart = new Chart(ctx, {
 // Colors in the Color Wheel:
 rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
-var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // Filled in the next step
+var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // The 12 hues of our circle, filled in the next step
 var palette = []; // Built in the next step
 
 /*
 * Generate a color palette containing the colors in the color circle AND THEIR SHADES 
 * (different luminance and saturation values), plus some greys (for aesthetical purposes).
-* We cannot use the color wheel as it is because we would loose too much information about hues
-* (a lot of colors become greys).
+* We cannot use the color wheel as it is because less saturated colors or colors w/ high 
+* or low luminance would be mapped in greys causing loss of information about hues.
+* Total number of colors: 246.
 */
 for(i=0; i<12; i++) {
   var currentColor = hslCircle[i];
@@ -102,8 +83,8 @@ var imageData;
 var width;
 var height;
 var resulting_palette;
-var resulting_colors = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1];
-var most_present_color = [0, 0, 0];
+var hue_hist = []; // Hue histogram of the quantized image (max 12 hues)
+var resulting_mode = [];
 var opts = {
 	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
@@ -121,9 +102,26 @@ var opts = {
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
 };
 
+//modes in binary form
+var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
+var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
+var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
+var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
+var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
+var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
+var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
+var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian];
+
+//function to rotate arrays
+function arrayRotate(arr, count) {
+  count -= arr.length * Math.floor(count / arr.length);
+  arr.push.apply(arr, arr.splice(0, count));
+  return arr;
+}
+
 // Create web audio API context:
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-// create Oscillator and Gain nodes:
+// create Oscillators and Gain nodes:
 var osc1 = audioCtx.createOscillator();
 var osc2 = audioCtx.createOscillator();
 var osc3 = audioCtx.createOscillator();
@@ -131,7 +129,7 @@ var osc4 = audioCtx.createOscillator();
 osc1.type = 'sawtooth';
 osc2.type = 'sawtooth';
 osc3.type = 'sawtooth';
-osc4.type = 'sawtooth';
+osc4.type = 'triangle';
 var g = audioCtx.createGain();
 g.gain.value = 0;
 osc1.connect(g);
@@ -178,10 +176,10 @@ function readURL(input) {
         imageData = context.getImageData(0,0,width,height).data;
         // Quantize image
 		    var q = new RgbQuant(opts);
-		    q.sample(imageData);
-		    var outA = q.reduce(imageData);
+        q.sample(imageData);
+        var outA = q.reduce(imageData);
         var uint8clamped = new Uint8ClampedArray(outA.buffer);
-		    var DAT = new ImageData(uint8clamped, width, height);
+        var DAT = new ImageData(uint8clamped, width, height);
         context.putImageData(DAT, 0, 0);
 
         /* 
@@ -192,77 +190,77 @@ function readURL(input) {
         var tuples = true;
         var noSort = true;
         resulting_palette = q.palette(tuples, noSort); 
+        var q1 = new RgbQuant(opts);
+        q1.sample(DAT);
+        var resulting_freqs = q1.histFrequencies();
 
-        var i = 0;
-        var j = 0;
-        while (i<resulting_palette.length) { // Remove greys from color list
-          if (resulting_palette[i][0] == resulting_palette[i][1] && resulting_palette[i][1] == resulting_palette[i][2]) {
-            resulting_palette.splice(i, 1);
-          }
-
-          else { // Extract hue and store it if it hasn't been found yet
-            var current_hue = Math.round(255 * rgbToHsl(resulting_palette[i][0], resulting_palette[i][1], resulting_palette[i][2])[0]);
-            /*if (j==0 || current_hue - resulting_colors[j-1] != 0) {
-              resulting_colors[j] = current_hue;
-              j++;
-            }*/
-            resulting_colors[i] = current_hue;
-            i++;
+        // Hue histogram w/ duplicates (no greys), useful for debugging:
+        /*var hue_hist_dup = [];
+        for (i = 0; i<resulting_palette.length; i++) {
+          if (!(resulting_palette[i][0] == resulting_palette[i][1] && resulting_palette[i][1] == resulting_palette[i][2])) {
+            hue_hist_dup.push([Math.round(255 * rgbToHsl(resulting_palette[i][0], resulting_palette[i][1], resulting_palette[i][2])[0]), resulting_freqs[i]]);
           }
         }
-        resulting_colors = [...new Set(resulting_colors)]; // Remove duplicates
-        if ((resulting_colors[resulting_colors.length - 1]) == -1) {resulting_colors.pop();} // Delete last element if -1
-        console.log(resulting_colors);
-        //x determines the rotation of the array to be confronted depending on the most prominent value
-        x=0;
-        if (resulting_colors[0]==0){x=0};
-        if (resulting_colors[0]==21){x=1};
-        if (resulting_colors[0]==43){x=2};
-        if (resulting_colors[0]==64){x=3};
-        if (resulting_colors[0]==85){x=4};
-        if (resulting_colors[0]==106){x=5};
-        if (resulting_colors[0]==128){x=6};
-        if (resulting_colors[0]==149){x=7};
-        if (resulting_colors[0]==170){x=8};
-        if (resulting_colors[0]==191){x=9};
-        if (resulting_colors[0]==213){x=10};
-        if (resulting_colors[0]==234){x=11};
+        console.log("hue hist w/ duplicates:");
+        console.log(hue_hist_dup);*/
+
+        // Extract Hue histogram from quantized image
+        var i = 0;
+        while (i<resulting_palette.length) {
+          if (resulting_palette[i][0] == resulting_palette[i][1] && resulting_palette[i][1] == resulting_palette[i][2]) 
+            i++; // ignore greys
+          else {
+            var current_hue = Math.round(255 * rgbToHsl(resulting_palette[i][0], resulting_palette[i][1], resulting_palette[i][2])[0]);
+            var current_freq = resulting_freqs[i]; // occurrences of the considered color
+            var already_present = false;
+            if (hue_hist.length == 0) { // insert first element w/o checking if already present
+              hue_hist.push([current_hue, current_freq]);
+              i++;
+            }
+            else {
+              for (j = 0; j<hue_hist.length; j++) { // check if the hue is already present, update occurrencies if it is
+                if (hue_hist[j][0] == current_hue) {
+                  hue_hist[j][1] =  hue_hist[j][1] + current_freq;
+                  already_present = true;
+                  break;
+                }
+              }
+              if (!already_present) // if hue is not already present add it to current_colors
+                hue_hist.push([current_hue, current_freq]);
+              i++;
+            }
+          }
+        }
+        hue_hist.sort(function(a,b) { // sort the hue histogram by occurrences (descending order)
+          return b[1]-a[1]
+        });
+
+        //rot determines the rotation of the array to be confronted depending on the most prominent value
+        rot = hues.indexOf(hue_hist[0][0]);
   
-        console.log(x);
-        //values2 is the array rotated
-        values2 = arrayRotate(values, x);
-        console.log(values2);
-        //now we'll multiplicate the values of values2 elementwise with the binary format of the modes in order to
-        //select only the values that are present on that scale. This because later we'll confont those values with the
-        // values in the array resulting_colors to see what's the most similar mode
-
-        //here's the example with ionian scale
-        ionian_values=[0,0,0,0,0,0,0,0,0,0,0,0];
-        for (i=0;i<12;i++) {
-          //elementwise multiplication
-          ionian_values[i]=values2[i]*ionian[i];
-        };
-        console.log(ionian_values);
-
-        //here's how we decide what's the most similar mode: we confront the values of resulting_colors with, for example,
-        //ionian_values. For each value that is present in both scales, the punteggio increases by one.
-        //We'll do it for every mode and then select the max "punteggio" to decide the mode
-        punteggio_ionian=0;
-        for (i=0;i<resulting_colors.length;i++)
-        {
-          if (resulting_colors[i]==ionian_values[1] || resulting_colors[i]==ionian_values[2]||
-            resulting_colors[i]==ionian_values[3] || resulting_colors[i]==ionian_values[4]||
-            resulting_colors[i]==ionian_values[5] || resulting_colors[i]==ionian_values[6]||
-            resulting_colors[i]==ionian_values[7] || resulting_colors[i]==ionian_values[8]||
-            resulting_colors[i]==ionian_values[9] || resulting_colors[i]==ionian_values[10]||
-            resulting_colors[i]==ionian_values[11] || resulting_colors[i]==ionian_values[0])
-            {punteggio_ionian++};
-        };
-        console.log(punteggio_ionian);
-        
-        values    = [0,21,43,64,85,106,128,149,170,191,213,234];
-        
-
+        //hues_r is the hue array w/ the most present hue at the first place
+        hues_r = arrayRotate(hues, rot);
+       
+        /* 
+        * Here's how we decide what's the most similar mode: for each element in common between the
+        * resulting scale and one of the modes, the score of said mode increases by a number which is
+        * proportional to the occurrence of that element (color/note).
+        * The mode with the highest score is the chosen one.
+        */
+        resulting_scale = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        for (i=0; i<hue_hist.length; i++) {
+          resulting_scale[hues_r.indexOf(hue_hist[i][0])] = hue_hist[i][1] //12 - hue_hist.indexOf(hue_hist[i]);      
+        }
+        var scores = [];
+        for (i = 0; i < 7; i++) {
+          var current_score = 0;
+          for (j = 0; j < 12; j++) {
+            current_score += modes[i][j]*resulting_scale[j];
+          }
+          scores.push(current_score);
+        }
+        resulting_mode = modes[indexOfMax(scores)];
+        console.log(resulting_mode);
 	    }
 	  
       img.src = e.target.result;
@@ -274,27 +272,25 @@ function readURL(input) {
       var mouseY = parseInt(e.offsetY);
       var pxData = context.getImageData(mouseX, mouseY, 1, 1);
       var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
-      console.log("Mouse position: " + mouseX + "," + mouseY);
       var grey = false;
       if (eyeDropperColor[0] == eyeDropperColor[1] && eyeDropperColor[0] == eyeDropperColor[2]) {
         grey = true;
       }
       if (!grey) {
         var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
-        console.log("Hue: " + playingColor);
         $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
         //g.gain.value = 0.5;
         var index = hues.indexOf(playingColor);
         osc1.frequency.value = 440*Math.pow(2, index/12); // value in hertz
         osc2.frequency.value = 440*Math.pow(2, (index + 2)/12);
         osc3.frequency.value = 440*Math.pow(2, (index + 4)/12);
+        osc4.frequency.value = (440*Math.pow(2, index/12))/2;
         g.gain.setValueAtTime(0, audioCtx.currentTime);
-        g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
-        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-        //osc4.frequency.value = 440*Math.pow(2, (index + 5)/12);
+        g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
+        //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
       }
       else {
-        g.gain.value = 0;
+        g.gain.setValueAtTime(0, audioCtx.currentTime);
       }
       
       });
@@ -386,4 +382,23 @@ function hslToRgb(h, s, l) {
   }
 
   return [ r * 255, g * 255, b * 255 ];
+}
+
+// Returns index of max element in array arr
+function indexOfMax(arr) {
+  if (arr.length === 0) {
+      return -1;
+  }
+
+  var max = arr[0];
+  var maxIndex = 0;
+
+  for (var i = 1; i < arr.length; i++) {
+      if (arr[i] > max) {
+          maxIndex = i;
+          max = arr[i];
+      }
+  }
+
+  return maxIndex;
 }
