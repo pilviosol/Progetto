@@ -1,21 +1,15 @@
 # Progetto ACTaM e CM-RM
-## GENERAZIONE DI UNA CHORD PROGRESSION E DI UN POLIRITMO A PARTIRE DA UN IMMAGINE
+## SONIFICAZIONE DI IMMAGINI
+L'immagine caricata viene "suonata" passando il mouse sopra i vari colori. Tonalità e modo sono determinati come spiegato più in basso. Ogni colore dell'immagine suona un accordo con una root note diversa. La tonalità può essere arbitraria. Il modo è determinato dalle percentuali di colori. Il colore più presente rappresenta la tonica, gli altri colori rappresentano altre note che avranno una distanza in semitoni dalla tonica determinata dalla ruota dei colori (Hue circle di 12 colori). Dopo aver ottenuto un'immagine in cui le hues sono quantizzate (limitate alle 12 disponibili nella ruota) si ottiene un istogramma delle hues sulla base del quale il modo della scala viene determinato. Il modo scelto è quello che massimizza un punteggio determinato dalle note (colori) in comune con quelli dell'immagine caricata, pesati in base a quanto sono presenti nell'immagine.
 
-TONALITÀ: può essere arbitraria
+PROBLEMA: decidere che tipo di accordi sono suonati da colori la cui nota corrispondente non fa parte del modo scelto.
 
-MODO: determinato dalle percentuali di colori. PROBLEMA: non è detto che ci siano abbastanza colori da poter determinare un modo in maniera univoca, quindi direi di usare il colore più presente come parametro di riserva per determinare il modo in caso non sia possibile.
-Possibile implementazione iterativa:
-Ogni colore corrisponde a una nota e il più presente rappresenta la tonica. Da i=2: si controlla la distanza in semitoni tra l'i-esimo colore (nota) più presente e l'(i-1)-esimo colore più presente. Si tengono tutte le scale che contengono quella nota e si scartano le altre, se ne rimane più di una possibile si passa all'(i+1)-esimo colore più presente.
-Esempio: se il secondo colore più presente sta a un semitono dal primo, gli unici due modi possibili sono frigio e locrio perchè sono gli unici il cui primo intervallo è di un semitono.
-
-Usiamo la distanza di Hamming.
-
-CHORD PROGRESSION: determinata dal colore più presente. Se i colori che rappresentano intervalli di 2a, 4a e 6a sono abbastanza presenti (superano una certa percentuale) possiamo aggiungere etensioni agli accordi. 
-
-POLIRITMO: determinato dalle percentuali dei colori, dobbiamo decidere un set di poliritmi che non siano eccessivamente complessi. 
-
-
-
-## ALTERNATIVA
-
-L'immagine viene "suonata" passando il mouse sopra i vari colori. Tonalità e modo sono determinati come sopra, ogni colore dell'immagine suona un accordo con una root note diversa.
+## TO DO:
+- creare visualizzatore del modo scelto
+- creare visualizzatore dell'accordo suonato
+- visualizzare istogramma delle hues (?)
+- evidenziare i colori della ruota mentre vengono suonati
+- migliorare envelope e sound design
+- inserire controlli utente per cambiare suoni (?)
+- inserire controlli utente per complessità accordi (?)
+- risolvere problema note non presenti nel modo scelto
