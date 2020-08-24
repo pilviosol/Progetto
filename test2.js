@@ -85,6 +85,7 @@ var height;
 var resulting_palette;
 var hue_hist = []; // Hue histogram of the quantized image (max 12 hues)
 var resulting_mode = [];
+var scale_notes = [];
 var opts = {
 	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
@@ -261,6 +262,12 @@ function readURL(input) {
         }
         resulting_mode = modes[indexOfMax(scores)]; // Pick the mode with the highest scores
         console.log(resulting_mode);
+
+        for (i = 0; i < 12; i++) {
+          if (resulting_mode[i])
+            scale_notes.push(i + 1);
+        }
+        console.log(scale_notes);
 	    }
 	  
       img.src = e.target.result;
@@ -279,12 +286,15 @@ function readURL(input) {
       if (!grey) {
         var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
         $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-        //g.gain.value = 0.5;
-        var index = hues.indexOf(playingColor);
-        osc1.frequency.value = 440*Math.pow(2, index/12); // value in hertz
-        osc2.frequency.value = 440*Math.pow(2, (index + 2)/12);
-        osc3.frequency.value = 440*Math.pow(2, (index + 4)/12);
-        osc4.frequency.value = (440*Math.pow(2, index/12))/2;
+        var index = hues_r.indexOf(playingColor);
+        // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
+        var int1 = nextInterval(resulting_mode, index);
+        var int2 = nextInterval(resulting_mode, (index + int1));
+        // var int3 = nextInterval(resulting_mode, index + int2);
+        osc1.frequency.value = 440*Math.pow(2, index/12); 
+        osc2.frequency.value = 440*Math.pow(2, (index + int1)/12);
+        osc3.frequency.value = 440*Math.pow(2, (index + int2)/12);
+        osc4.frequency.value = (440*Math.pow(2, index/12))/2; // Bass note
         g.gain.setValueAtTime(0, audioCtx.currentTime);
         g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
         //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
@@ -311,6 +321,9 @@ function removeUpload() {
   $('.file-upload-content').hide();
   $('.image-upload-wrap').show();
   g.gain.value = 0;
+  hue_hist = []; 
+  resulting_mode = [];
+  scale_notes = [];
 }
 
 $('.image-upload-wrap').bind('dragover', function () {
@@ -401,4 +414,17 @@ function indexOfMax(arr) {
   }
 
   return maxIndex;
+}
+
+// Given a mode and a note, return the interval in semitones with the next degree note
+function nextInterval(mode, note) {
+  if (mode[note] == 0) {
+    console.log("This note is not present in the mode.")
+    return NaN;
+  }
+  var index = note % 12;
+  var i = 1;
+  while (mode[index + i] == 0) 
+    i++;
+  return i;
 }
