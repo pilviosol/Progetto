@@ -45,6 +45,11 @@
   margin: 0 auto;
 }
 
+#mode-visualizer {
+  font-family:'Roboto Mono', monospace;
+  position: relative;
+}
+
 #myimage {
   margin: 20px;
   border-radius: 5px;

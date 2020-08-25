@@ -47,7 +47,7 @@ var chart = new Chart(ctx, {
     tooltips: {enabled: false,},
     elements: {
       center: {
-        text: 'TEXT',
+        text: '',
         color: '#FFFFFF', // Default is #000000
         fontStyle: 'Roboto Mono', // Default is Arial
         sidePadding: 20, // Default is 20 (as a percentage)
@@ -271,13 +271,11 @@ function readURL(input) {
           scores.push(current_score);
         }
         resulting_mode = modes[indexOfMax(scores)]; // Pick the mode with the highest scores
-        console.log(resulting_mode);
 
         for (i = 0; i < 12; i++) {
           if (resulting_mode[i])
             scale_notes.push(i + 1);
         }
-        console.log(scale_notes);
 	    }
 	  
       img.src = e.target.result;
@@ -298,9 +296,12 @@ function readURL(input) {
         $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
         var index = hues_r.indexOf(playingColor);
         // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
-        var int1 = nextInterval(resulting_mode, index);
-        var int2 = nextInterval(resulting_mode, (index + int1));
-        // var int3 = nextInterval(resulting_mode, index + int2);
+        var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
+        var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
+        var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
+        var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
+        //var skip3 = nextInterval(resulting_mode, (index + int2)) + int3; 
+        //var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
         osc1.frequency.value = 440*Math.pow(2, index/12); 
         osc2.frequency.value = 440*Math.pow(2, (index + int1)/12);
         osc3.frequency.value = 440*Math.pow(2, (index + int2)/12);
@@ -308,13 +309,11 @@ function readURL(input) {
         g.gain.setValueAtTime(0, audioCtx.currentTime);
         g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
         //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-<<<<<<< HEAD
-        chart.options.elements.center.text = 'UPDATED';
+        var [triad, mode] = selectTriad(resulting_mode,index);
+        var mode_visualizer = document.getElementById('mode-visualizer');
+        mode_visualizer.innerHTML = mode;
+        chart.options.elements.center.text = triad;
         chart.update();
-=======
-        console.log(index);
-        selectTriad(resulting_mode,index);
->>>>>>> refs/remotes/origin/master
       }
       else {
         g.gain.setValueAtTime(0, audioCtx.currentTime);
@@ -350,13 +349,16 @@ $('.image-upload-wrap').bind('dragover', function () {
 		$('.image-upload-wrap').removeClass('image-dropping');
 });
 
+/*-----------------------------------------------------------
+ FUNCTIONS:
+ ----------------------------------------------------------*/
 
-/*
+/***********************************************************
  * Converts an RGB color value to HSL. Conversion formula
  * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
  * Assumes r, g, and b are contained in the set [0, 255] and
  * returns h, s, and l in the set [0, 1].
- */
+ ***********************************************************/
 function rgbToHsl(r, g, b) {
   r /= 255, g /= 255, b /= 255;
 
@@ -381,12 +383,12 @@ function rgbToHsl(r, g, b) {
   return [ h, s, l ];
 }
 
-/*
+/************************************************************ 
  * Converts an HSL color value to RGB. Conversion formula
  * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
  * Assumes h, s, and l are contained in the set [0, 1] and
  * returns r, g, and b in the set [0, 255].
- */
+ ************************************************************/
 
 function hslToRgb(h, s, l) {
   var r, g, b;
@@ -414,7 +416,9 @@ function hslToRgb(h, s, l) {
   return [ r * 255, g * 255, b * 255 ];
 }
 
-// Returns index of max element in array arr
+/******************************************* 
+* Returns index of max element in array arr
+********************************************/
 function indexOfMax(arr) {
   if (arr.length === 0) {
       return -1;
@@ -432,8 +436,9 @@ function indexOfMax(arr) {
 
   return maxIndex;
 }
-
-// Given a mode and a note, return the interval in semitones with the next degree note
+/************************************************************************************* 
+* Given a mode and a note, return the interval in semitones with the next degree note
+*************************************************************************************/
 function nextInterval(mode, note) {
   if (mode[note] == 0) {
     console.log("This note is not present in the mode.")
@@ -446,7 +451,184 @@ function nextInterval(mode, note) {
   return i;
 }
 
-<<<<<<< HEAD
+/*****************************************************************************************
+* TRIADS: select the chord depending on the mode and the position of the note in the scale
+*****************************************************************************************/
+function selectTriad(resulting_mode, note) {
+
+  var triad;
+  var mode;
+
+  switch(resulting_mode) {
+//----------------------lydian------------------------------------
+    case modes[0]:
+      mode = "Lydian"
+      if (note==0||note==2||note==7) {
+        triad="MAJOR";
+      }
+      if (note==4||note==9||note==11) {
+        triad="minor";
+      }
+      if (note==6) {
+        triad="diminished";
+      }
+//-------------------------ionian---------------------------------
+    case modes[1]:
+      mode = "Ionian"
+      if (note==0||note==5||note==7) {
+        triad="MAJOR";
+      }
+      if (note==2||note==4||note==9) {
+        triad="minor";
+      }
+      if (note==11) {
+        triad="diminished";
+      }
+//---------------------------mixolydian-------------------------------
+    case modes[2]:
+      mode = "Myxolydian"
+      if (note==0||note==5||note==10) {
+        triad="MAJOR";
+      }
+      if (note==2||note==7||note==9) {
+        triad="minor";
+      }
+      if (note==4) {
+        triad="diminished";
+      }
+//---------------------------dorian-------------------------------
+    case modes[3]:
+      mode = "Dorian"
+      if (note==3||note==5||note==10) {
+        triad="MAJOR";
+      }
+      if (note==0||note==2||note==7) {
+        triad="minor";
+      }
+      if (note==9) {
+        triad="diminished";
+      }
+//----------------------------aeolian------------------------------
+    case modes[4]:
+      mode = "Aeolian"
+      if (note==3||note==8||note==10) {
+        triad="MAJOR";
+      }
+      if (note==0||note==5||note==7) {
+        triad="minor";
+      }
+      if (note==2) {
+        triad="diminished";
+      }
+//-------------------------phrygian---------------------------------
+    case modes[5]:
+      mode = "Phrygian"
+      if (note==1||note==3||note==8) {
+        triad="MAJOR";
+      }
+      if (note==0||note==5||note==10) {
+        triad="minor";
+      }
+      if (note==7) {
+        triad="diminished";
+      }
+//--------------------------locrian--------------------------------
+    case modes[6]:
+      mode = "Locrian"
+      if (resulting_mode==modes[6] && (note==1||note==6||note==8)) {
+        triad="MAJOR";
+      }
+      if (resulting_mode==modes[6] && (note==3||note==5||note==10)) {
+        triad="minor";
+      }
+      if (resulting_mode==modes[6] && (note==0)) {
+        triad="diminished";
+      }
+  }
+
+  /*
+//----------------------lydian------------------------------------
+  if (resulting_mode==modes[0] && (note==0||note==2||note==7)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[0] && (note==4||note==9||note==11)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[0] && (note==6)) {
+    triad="diminished";
+  }
+
+//-------------------------ionian---------------------------------
+  if (resulting_mode==modes[1] && (note==0||note==5||note==7)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[1] && (note==2||note==4||note==9)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[1] && (note==11)) {
+    triad="diminished";
+  }
+
+//---------------------------mixolydian-------------------------------
+  if (resulting_mode==modes[2] && (note==0||note==5||note==10)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[2] && (note==2||note==7||note==9)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[2] && (note==4)) {
+    triad="diminished";
+  }
+
+//---------------------------dorian-------------------------------
+  if (resulting_mode==modes[3] && (note==3||note==5||note==10)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[3] && (note==0||note==2||note==7)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[3] && (note==9)) {
+    triad="diminished";
+  }
+
+//----------------------------aeolian------------------------------
+  if (resulting_mode==modes[4] && (note==3||note==8||note==10)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[4] && (note==0||note==5||note==7)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[4] && (note==2)) {
+    triad="diminished";
+  }
+
+//-------------------------phrygian---------------------------------
+  if (resulting_mode==modes[5] && (note==1||note==3||note==8)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[5] && (note==0||note==5||note==10)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[5] && (note==7)) {
+    triad="diminished";
+  }
+
+//--------------------------locrian--------------------------------
+  if (resulting_mode==modes[6] && (note==1||note==6||note==8)) {
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[6] && (note==3||note==5||note==10)) {
+    triad="minor";
+  }
+  if (resulting_mode==modes[6] && (note==0)) {
+    triad="diminished";
+  }*/
+  
+  return [triad, mode];
+}
+/******************************************************************************** 
+* Modification to Chart.js in order to obtain text at the center of donut chart:
+********************************************************************************/
 Chart.pluginService.register({
   beforeDraw: function(chart) {
     if (chart.config.options.elements.center) {
@@ -530,107 +712,3 @@ Chart.pluginService.register({
     }
   }
 });
-=======
-//*********************************** */
-//TRIADS: select the chord depending on the mode and the position of the note in the scale
-//*********************************** */
-function selectTriad(resulting_mode,note) {
-
-  var triad;
-
-
-//----------------------lydian------------------------------------
-  if (resulting_mode==modes[0] &&(note==0||note==2||note==7)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[0] &&(note==4||note==9||note==11)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[0] &&(note==6)){
-    triad="diminished";
-  }
-
-
-
-//-------------------------ionian---------------------------------
-  if (resulting_mode==modes[1] &&(note==0||note==5||note==7)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[1] &&(note==2||note==4||note==9)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[1] &&(note==11)){
-    triad="diminished";
-  }
-
-
-//---------------------------mixolydian-------------------------------
-  if (resulting_mode==modes[2] &&(note==0||note==5||note==10)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[2] &&(note==2||note==7||note==9)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[2] &&(note==4)){
-    triad="diminished";
-  }
-
-
-//---------------------------dorian-------------------------------
-  if (resulting_mode==modes[3] &&(note==3||note==5||note==10)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[3] &&(note==0||note==2||note==7)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[3] &&(note==9)){
-    triad="diminished";
-  }
-
-
-//----------------------------aeolian------------------------------
-  if (resulting_mode==modes[4] &&(note==3||note==8||note==10)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[4] &&(note==0||note==5||note==7)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[4] &&(note==2)){
-    triad="diminished";
-  }
-
-
-//-------------------------phrygian---------------------------------
-  if (resulting_mode==modes[5] &&(note==1||note==3||note==8)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[5] &&(note==0||note==5||note==10)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[5] &&(note==7)){
-    triad="diminished";
-  }
-
-
-//--------------------------locrian--------------------------------
-  if (resulting_mode==modes[6] &&(note==1||note==6||note==8)){
-    triad="MAJOR";
-  }
-  if (resulting_mode==modes[6] &&(note==3||note==5||note==10)){
-    triad="minor";
-  }
-
-  if (resulting_mode==modes[6] &&(note==0)){
-    triad="diminished";
-  }
-  console.log(triad);
-
-}
-
->>>>>>> refs/remotes/origin/master
