@@ -308,8 +308,13 @@ function readURL(input) {
         g.gain.setValueAtTime(0, audioCtx.currentTime);
         g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
         //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+<<<<<<< HEAD
         chart.options.elements.center.text = 'UPDATED';
         chart.update();
+=======
+        console.log(index);
+        selectTriad(resulting_mode,index);
+>>>>>>> refs/remotes/origin/master
       }
       else {
         g.gain.setValueAtTime(0, audioCtx.currentTime);
@@ -441,6 +446,7 @@ function nextInterval(mode, note) {
   return i;
 }
 
+<<<<<<< HEAD
 Chart.pluginService.register({
   beforeDraw: function(chart) {
     if (chart.config.options.elements.center) {
@@ -524,3 +530,107 @@ Chart.pluginService.register({
     }
   }
 });
+=======
+//*********************************** */
+//TRIADS: select the chord depending on the mode and the position of the note in the scale
+//*********************************** */
+function selectTriad(resulting_mode,note) {
+
+  var triad;
+
+
+//----------------------lydian------------------------------------
+  if (resulting_mode==modes[0] &&(note==0||note==2||note==7)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[0] &&(note==4||note==9||note==11)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[0] &&(note==6)){
+    triad="diminished";
+  }
+
+
+
+//-------------------------ionian---------------------------------
+  if (resulting_mode==modes[1] &&(note==0||note==5||note==7)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[1] &&(note==2||note==4||note==9)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[1] &&(note==11)){
+    triad="diminished";
+  }
+
+
+//---------------------------mixolydian-------------------------------
+  if (resulting_mode==modes[2] &&(note==0||note==5||note==10)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[2] &&(note==2||note==7||note==9)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[2] &&(note==4)){
+    triad="diminished";
+  }
+
+
+//---------------------------dorian-------------------------------
+  if (resulting_mode==modes[3] &&(note==3||note==5||note==10)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[3] &&(note==0||note==2||note==7)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[3] &&(note==9)){
+    triad="diminished";
+  }
+
+
+//----------------------------aeolian------------------------------
+  if (resulting_mode==modes[4] &&(note==3||note==8||note==10)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[4] &&(note==0||note==5||note==7)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[4] &&(note==2)){
+    triad="diminished";
+  }
+
+
+//-------------------------phrygian---------------------------------
+  if (resulting_mode==modes[5] &&(note==1||note==3||note==8)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[5] &&(note==0||note==5||note==10)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[5] &&(note==7)){
+    triad="diminished";
+  }
+
+
+//--------------------------locrian--------------------------------
+  if (resulting_mode==modes[6] &&(note==1||note==6||note==8)){
+    triad="MAJOR";
+  }
+  if (resulting_mode==modes[6] &&(note==3||note==5||note==10)){
+    triad="minor";
+  }
+
+  if (resulting_mode==modes[6] &&(note==0)){
+    triad="diminished";
+  }
+  console.log(triad);
+
+}
+
+>>>>>>> refs/remotes/origin/master
