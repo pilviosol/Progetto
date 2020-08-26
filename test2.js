@@ -270,8 +270,18 @@ function readURL(input) {
           }
           scores.push(current_score);
         }
-        resulting_mode = modes[indexOfMax(scores)]; // Pick the mode with the highest scores
-
+        resulting_mode = modes[indexOfMax(scores)];// Pick the mode with the highest scores
+        var mode_name="";
+        if (indexOfMax(scores)==0){mode_name="lydian"}
+        if (indexOfMax(scores)==1){mode_name="ionian"}
+        if (indexOfMax(scores)==2){mode_name="mixolydian"}
+        if (indexOfMax(scores)==3){mode_name="dorian"}
+        if (indexOfMax(scores)==4){mode_name="aeolian"}
+        if (indexOfMax(scores)==5){mode_name="phrygian"}
+        if (indexOfMax(scores)==6){mode_name="locrian"}
+        console.log(mode_name);
+        var mode_visualizer = document.getElementById('mode-visualizer');
+        mode_visualizer.innerHTML = mode_name;
         for (i = 0; i < 12; i++) {
           if (resulting_mode[i])
             scale_notes.push(i + 1);
@@ -303,6 +313,24 @@ function readURL(input) {
         //var skip3 = nextInterval(resulting_mode, (index + int2)) + int3; 
         //var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
         osc1.frequency.value = 440*Math.pow(2, index/12); 
+        var current_note_name="";
+        
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 0/12))) {current_note_name="A "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 1/12))) {current_note_name="A# "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 2/12))) {current_note_name="B "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 3/12))) {current_note_name="C "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 4/12))) {current_note_name="C# "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 5/12))) {current_note_name="D "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 6/12))) {current_note_name="D# "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 7/12))) {current_note_name="E "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 8/12))) {current_note_name="F "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 9/12))) {current_note_name="F# "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 10/12))) {current_note_name="G "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 11/12))) {current_note_name="G# "}
+        if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 12/12))) {current_note_name="A "}
+       
+        console.log(current_note_name);
+        console.log(osc1.frequency.value);
         osc2.frequency.value = 440*Math.pow(2, (index + int1)/12);
         osc3.frequency.value = 440*Math.pow(2, (index + int2)/12);
         osc4.frequency.value = (440*Math.pow(2, index/12))/2; // Bass note
@@ -310,9 +338,8 @@ function readURL(input) {
         g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
         //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
         var [triad, mode] = selectTriad(resulting_mode,index);
-        var mode_visualizer = document.getElementById('mode-visualizer');
-        mode_visualizer.innerHTML = mode;
-        chart.options.elements.center.text = triad;
+        
+        chart.options.elements.center.text =current_note_name.concat(triad);
         chart.update();
       }
       else {
@@ -535,13 +562,13 @@ function selectTriad(resulting_mode, note) {
 //--------------------------locrian--------------------------------
     case modes[6]:
       mode = "Locrian"
-      if (resulting_mode==modes[6] && (note==1||note==6||note==8)) {
+      if (note==1||note==6||note==8) {
         triad="MAJOR";
       }
-      if (resulting_mode==modes[6] && (note==3||note==5||note==10)) {
+      if (note==3||note==5||note==10) {
         triad="minor";
       }
-      if (resulting_mode==modes[6] && (note==0)) {
+      if (note==0) {
         triad="diminished";
       }
   }
