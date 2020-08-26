@@ -337,7 +337,7 @@ function readURL(input) {
         g.gain.setValueAtTime(0, audioCtx.currentTime);
         g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
         //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-        var [triad, mode] = selectTriad(resulting_mode,index);
+        var triad = selectTriad(resulting_mode,index);
         
         chart.options.elements.center.text =current_note_name.concat(triad);
         chart.update();
@@ -481,6 +481,7 @@ function nextInterval(mode, note) {
 /*****************************************************************************************
 * TRIADS: select the chord depending on the mode and the position of the note in the scale
 *****************************************************************************************/
+/*
 function selectTriad(resulting_mode, note) {
 
   var triad;
@@ -572,8 +573,11 @@ function selectTriad(resulting_mode, note) {
         triad="diminished";
       }
   }
+  */
 
-  /*
+ function selectTriad(resulting_mode, note) {
+  var triad;
+  
 //----------------------lydian------------------------------------
   if (resulting_mode==modes[0] && (note==0||note==2||note==7)) {
     triad="MAJOR";
@@ -649,9 +653,9 @@ function selectTriad(resulting_mode, note) {
   }
   if (resulting_mode==modes[6] && (note==0)) {
     triad="diminished";
-  }*/
+  }
   
-  return [triad, mode];
+  return triad;
 }
 /******************************************************************************** 
 * Modification to Chart.js in order to obtain text at the center of donut chart:
