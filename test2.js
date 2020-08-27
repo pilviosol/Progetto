@@ -570,6 +570,133 @@ function selectTriad(resulting_mode, note) {
   return triad;
 }
 
+/*****************************************************************************************
+* QUADRIADS: select the chord depending on the mode and the position of the note in the scale
+*****************************************************************************************/
+
+function selectQuadriad(resulting_mode, note) {
+
+  var quadriad;
+
+  switch(resulting_mode) {
+//----------------------lydian------------------------------------
+    case modes[0]:
+      if (note==9||note==11||note==4) {
+        quadriad="m7";
+      }
+      if (note==0||note==7) {
+        quadriad="delta";
+      }
+      if (note==2) {
+        quadriad="7";
+      }
+      if (note==6) {
+        quadriad="m7/5-";
+      }
+      break;
+//-------------------------ionian---------------------------------
+    case modes[1]:
+      if (note==9||note==2||note==4) {
+        quadriad="m7";
+      }
+      if (note==0||note==5) {
+        quadriad="delta";
+      }
+      if (note==7) {
+        quadriad="7";
+      }
+      if (note==11) {
+        quadriad="m7/5-";
+      }
+      break;
+//---------------------------mixolydian-------------------------------
+    case modes[2]:
+      if (note==2||note==7||note==9) {
+        quadriad="m7";
+      }
+      if (note==10||note==5) {
+        quadriad="delta";
+      }
+      if (note==0) {
+        quadriad="7";
+      }
+      if (note==4) {
+        quadriad="m7/5-";
+      }
+      break;
+//---------------------------dorian-------------------------------
+    case modes[3]:
+      if (note==0||note==2||note==7) {
+        quadriad="m7";
+      }
+      if (note==10||note==3) {
+        quadriad="delta";
+      }
+      if (note==5) {
+        quadriad="7";
+      }
+      if (note==9) {
+        quadriad="m7/5-";
+      }
+      break;
+//----------------------------aeolian------------------------------
+    case modes[4]:
+      if (note==0||note==5||note==7) {
+        quadriad="m7";
+      }
+      if (note==3||note==8) {
+        quadriad="delta";
+      }
+      if (note==10) {
+        quadriad="7";
+      }
+      if (note==2) {
+        quadriad="m7/5-";
+      }
+      break;
+//-------------------------phrygian---------------------------------
+    case modes[5]:
+      if (note==0||note==5||note==10) {
+        quadriad="m7";
+      }
+      if (note==1||note==8) {
+        quadriad="delta";
+      }
+      if (note==3) {
+        quadriad="7";
+      }
+      if (note==7) {
+        quadriad="m7/5-";
+      }
+      break;
+//--------------------------locrian--------------------------------
+    case modes[6]:
+      if (note==3||note==5||note==10) {
+        quadriad="m7";
+      }
+      if (note==1||note==6) {
+        quadriad="delta";
+      }
+      if (note==8) {
+        quadriad="7";
+      }
+      if (note==0) {
+        quadriad="m7/5-";
+      }
+      break;
+    }
+  return quadriad;
+}
+
+
+
+
+
+
+
+
+
+
 function modeName(mode) {
   var mode_name = ""
   switch (mode) {
