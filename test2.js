@@ -95,7 +95,7 @@ var height;
 var resulting_palette;
 var hue_hist = []; // Hue histogram of the quantized image (max 12 hues)
 var resulting_mode = [];
-var scale_notes = [];
+var mode_intervals = [];
 var opts = {
 	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
@@ -270,23 +270,16 @@ function readURL(input) {
           }
           scores.push(current_score);
         }
-        resulting_mode = modes[indexOfMax(scores)];// Pick the mode with the highest scores
-        var mode_name="";
-        if (indexOfMax(scores)==0){mode_name="lydian"}
-        if (indexOfMax(scores)==1){mode_name="ionian"}
-        if (indexOfMax(scores)==2){mode_name="mixolydian"}
-        if (indexOfMax(scores)==3){mode_name="dorian"}
-        if (indexOfMax(scores)==4){mode_name="aeolian"}
-        if (indexOfMax(scores)==5){mode_name="phrygian"}
-        if (indexOfMax(scores)==6){mode_name="locrian"}
-        console.log(mode_name);
+        resulting_mode = modes[indexOfMax(scores)]; // Pick the mode with the highest scores
+        var mode_name= modeName(resulting_mode);
         var mode_visualizer = document.getElementById('mode-visualizer');
         mode_visualizer.innerHTML = mode_name;
         for (i = 0; i < 12; i++) {
           if (resulting_mode[i])
-            scale_notes.push(i + 1);
+            mode_intervals.push(i);
         }
-	    }
+      }
+      console.log(mode_intervals);
 	  
       img.src = e.target.result;
 
@@ -304,14 +297,13 @@ function readURL(input) {
       if (!grey) {
         var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
         $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-        var index = hues_r.indexOf(playingColor);
+        var index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
+        console.log(index);
         // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
         var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
         var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
         var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
         var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
-        console.log(int1);
-        console.log(int2);
         //var skip3 = nextInterval(resulting_mode, (index + int2)) + int3; 
         //var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
         osc1.frequency.value = 440*Math.pow(2, index/12); 
@@ -331,8 +323,6 @@ function readURL(input) {
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 11/12))) {current_note_name="G# "}
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 12/12))) {current_note_name="A "}
        
-        //console.log(current_note_name);
-        //console.log(osc1.frequency.value);
         osc2.frequency.value = 440*Math.pow(2, (index + int1)/12);
         osc3.frequency.value = 440*Math.pow(2, (index + int2)/12);
         osc4.frequency.value = (440*Math.pow(2, index/12))/2; // Bass note
@@ -340,8 +330,9 @@ function readURL(input) {
         g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
         //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
         var triad = selectTriad(resulting_mode,index);
-        
-        chart.options.elements.center.text =current_note_name.concat(triad);
+        var degree = mode_intervals.indexOf(index);
+        var degree_name = degreeName(degree, triad);
+        chart.options.elements.center.text = (current_note_name.concat(degree_name)).concat(triad);
         chart.update();
       }
       else {
@@ -368,7 +359,7 @@ function removeUpload() {
   g.gain.value = 0;
   hue_hist = []; 
   resulting_mode = [];
-  scale_notes = [];
+  mode_intervals = [];
 }
 
 $('.image-upload-wrap').bind('dragover', function () {
@@ -483,16 +474,14 @@ function nextInterval(mode, note) {
 /*****************************************************************************************
 * TRIADS: select the chord depending on the mode and the position of the note in the scale
 *****************************************************************************************/
-/*
+
 function selectTriad(resulting_mode, note) {
 
   var triad;
-  var mode;
 
   switch(resulting_mode) {
 //----------------------lydian------------------------------------
     case modes[0]:
-      mode = "Lydian"
       if (note==0||note==2||note==7) {
         triad="MAJOR";
       }
@@ -502,9 +491,9 @@ function selectTriad(resulting_mode, note) {
       if (note==6) {
         triad="diminished";
       }
+      break;
 //-------------------------ionian---------------------------------
     case modes[1]:
-      mode = "Ionian"
       if (note==0||note==5||note==7) {
         triad="MAJOR";
       }
@@ -514,9 +503,9 @@ function selectTriad(resulting_mode, note) {
       if (note==11) {
         triad="diminished";
       }
+      break;
 //---------------------------mixolydian-------------------------------
     case modes[2]:
-      mode = "Myxolydian"
       if (note==0||note==5||note==10) {
         triad="MAJOR";
       }
@@ -526,9 +515,9 @@ function selectTriad(resulting_mode, note) {
       if (note==4) {
         triad="diminished";
       }
+      break;
 //---------------------------dorian-------------------------------
     case modes[3]:
-      mode = "Dorian"
       if (note==3||note==5||note==10) {
         triad="MAJOR";
       }
@@ -538,9 +527,9 @@ function selectTriad(resulting_mode, note) {
       if (note==9) {
         triad="diminished";
       }
+      break;
 //----------------------------aeolian------------------------------
     case modes[4]:
-      mode = "Aeolian"
       if (note==3||note==8||note==10) {
         triad="MAJOR";
       }
@@ -550,9 +539,9 @@ function selectTriad(resulting_mode, note) {
       if (note==2) {
         triad="diminished";
       }
+      break;
 //-------------------------phrygian---------------------------------
     case modes[5]:
-      mode = "Phrygian"
       if (note==1||note==3||note==8) {
         triad="MAJOR";
       }
@@ -562,9 +551,9 @@ function selectTriad(resulting_mode, note) {
       if (note==7) {
         triad="diminished";
       }
+      break;
 //--------------------------locrian--------------------------------
     case modes[6]:
-      mode = "Locrian"
       if (note==1||note==6||note==8) {
         triad="MAJOR";
       }
@@ -574,10 +563,69 @@ function selectTriad(resulting_mode, note) {
       if (note==0) {
         triad="diminished";
       }
-  }
-  */
+      break;
+    }
+  return triad;
+}
 
- function selectTriad(resulting_mode, note) {
+function modeName(mode) {
+  var mode_name = ""
+  switch (mode) {
+    case modes[0]:
+      mode_name = "Lydian";
+      break;
+    case modes[1]:
+      mode_name = "Ionian";
+      break;
+    case modes[2]:
+      mode_name = "Myxolydian";
+      break;
+    case modes[3]:
+      mode_name = "Dorian";
+      break;
+    case modes[4]:
+      mode_name = "Aeolian";
+      break;
+    case modes[5]:
+      mode_name = "Phrygian";
+      break;
+    case modes[6]:
+      mode_name = "Locrian";
+      break;
+  }
+  return mode_name;
+}
+  
+function degreeName(degree, triad) {
+  var degree_name = "";
+  switch (degree) {
+    case 0:
+      degree_name = "i ";
+      break;
+    case 1:
+      degree_name = "ii ";
+      break;
+    case 2:
+      degree_name = "iii ";
+      break;
+    case 3:
+      degree_name = "iv ";
+      break;
+    case 4:
+      degree_name = "v ";
+      break;
+    case 5:
+      degree_name = "vi ";
+      break;
+    case 6:
+      degree_name = "vii ";
+      break;
+  }
+  if (triad == "MAJOR") degree_name = degree_name.toUpperCase();
+  return degree_name;
+}
+
+ /*function selectTriad(resulting_mode, note) {
   var triad;
   
 //----------------------lydian------------------------------------
@@ -658,7 +706,8 @@ function selectTriad(resulting_mode, note) {
   }
   
   return triad;
-}
+}*/
+
 /******************************************************************************** 
 * Modification to Chart.js in order to obtain text at the center of donut chart:
 ********************************************************************************/
