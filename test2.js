@@ -310,6 +310,8 @@ function readURL(input) {
         var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
         var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
         var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
+        console.log(int1);
+        console.log(int2);
         //var skip3 = nextInterval(resulting_mode, (index + int2)) + int3; 
         //var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
         osc1.frequency.value = 440*Math.pow(2, index/12); 
@@ -329,8 +331,8 @@ function readURL(input) {
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 11/12))) {current_note_name="G# "}
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 12/12))) {current_note_name="A "}
        
-        console.log(current_note_name);
-        console.log(osc1.frequency.value);
+        //console.log(current_note_name);
+        //console.log(osc1.frequency.value);
         osc2.frequency.value = 440*Math.pow(2, (index + int1)/12);
         osc3.frequency.value = 440*Math.pow(2, (index + int2)/12);
         osc4.frequency.value = (440*Math.pow(2, index/12))/2; // Bass note
