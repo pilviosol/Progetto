@@ -168,19 +168,20 @@ function readURL(input) {
       canvas = document.getElementById("myimage");
       context = canvas.getContext("2d");
       var img = new Image();
+      var maxDim = 400;
       img.onload = function() {
-        // Limit the dimensions of the canvas to 400x400 mantaining ratio
+        // Limit the dimensions of the canvas to maxDim x maxDim mantaining ratio
         if (img.width > img.height) {
-          width = 400;
+          width = maxDim;
           canvas.width = width;
-          height = Math.round((img.height*400)/(img.width));
+          height = Math.round((img.height*maxDim)/(img.width));
           canvas.height = height;
           context.drawImage(img,0,0,width,height)
         }
         else {
-          height = 400;
+          height = maxDim;
           canvas.height = height;
-          width = Math.round((img.width*400)/(img.height));
+          width = Math.round((img.width*maxDim)/(img.height));
           canvas.width = width;
           context.drawImage(img,0,0,width,height)
         }
@@ -273,7 +274,7 @@ function readURL(input) {
         resulting_mode = modes[indexOfMax(scores)]; // Pick the mode with the highest scores
         var mode_name= modeName(resulting_mode);
         var mode_visualizer = document.getElementById('mode-visualizer');
-        mode_visualizer.innerHTML = mode_name;
+        mode_visualizer.innerHTML = "Resulting mode: " + mode_name;
         for (i = 0; i < 12; i++) {
           if (resulting_mode[i])
             mode_intervals.push(i);
@@ -307,8 +308,8 @@ function readURL(input) {
         //var skip3 = nextInterval(resulting_mode, (index + int2)) + int3; 
         //var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
         osc1.frequency.value = 440*Math.pow(2, index/12); 
-        var current_note_name="";
         
+        var current_note_name="";
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 0/12))) {current_note_name="A "}
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 1/12))) {current_note_name="A# "}
         if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 2/12))) {current_note_name="B "}
@@ -332,7 +333,8 @@ function readURL(input) {
         var triad = selectTriad(resulting_mode,index);
         var degree = mode_intervals.indexOf(index);
         var degree_name = degreeName(degree, triad);
-        chart.options.elements.center.text = (current_note_name.concat(degree_name)).concat(triad);
+        // chart.options.elements.center.text = current_note_name.concat(triad);
+        chart.options.elements.center.text = degree_name + " (" + triad + ")";
         chart.update();
       }
       else {
@@ -600,28 +602,29 @@ function degreeName(degree, triad) {
   var degree_name = "";
   switch (degree) {
     case 0:
-      degree_name = "i ";
+      degree_name = "i";
       break;
     case 1:
-      degree_name = "ii ";
+      degree_name = "ii";
       break;
     case 2:
-      degree_name = "iii ";
+      degree_name = "iii";
       break;
     case 3:
-      degree_name = "iv ";
+      degree_name = "iv";
       break;
     case 4:
-      degree_name = "v ";
+      degree_name = "v";
       break;
     case 5:
-      degree_name = "vi ";
+      degree_name = "vi";
       break;
     case 6:
-      degree_name = "vii ";
+      degree_name = "vii";
       break;
   }
   if (triad == "MAJOR") degree_name = degree_name.toUpperCase();
+  if (triad == "diminished") degree_name = degree_name + String.fromCharCode(176);
   return degree_name;
 }
 
