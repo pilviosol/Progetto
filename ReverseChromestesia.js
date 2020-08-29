@@ -1,3 +1,67 @@
+// Create web audio API context:
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// create Oscillators and Gain nodes:
+var osc1 = audioCtx.createOscillator(); // Root note
+var osc2 = audioCtx.createOscillator(); // 3rd
+var osc3 = audioCtx.createOscillator(); // 5th
+var osc4 = audioCtx.createOscillator(); // 7th
+osc1.type = 'sawtooth';
+osc2.type = 'sawtooth';
+osc3.type = 'sawtooth';
+osc4.type = 'triangle';
+var g = audioCtx.createGain();
+var g7 = audioCtx.createGain();
+g.gain.value = 0; // Gain for the triad
+g7.gain.value = 0; // Gain for the 7th
+osc1.connect(g);
+osc2.connect(g);
+osc3.connect(g);
+osc4.connect(g7);
+g.connect(audioCtx.destination); 
+g7.connect(audioCtx.destination);
+osc1.start();
+osc2.start();
+osc3.start();
+osc4.start();
+
+// Musical variables
+//modes in binary form
+var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
+var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
+var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
+var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
+var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
+var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
+var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
+var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian]; // Array of modes
+var resulting_mode = []; // Mode obtained from the image in binary form
+var mode_intervals = []; // Intervals in semitones (from the tonic) of the obtained mode. Contains 7 values.
+var index; // Distance in semitones between the root note of the playing chord and the the tonic
+var degree; // Degree of the root note of the currently playing chord (int)
+var degree_name = ""; // Degree of the root note of the currently playing chord (String)
+var triad = ""; // Can be "minor", "MAJOR", or "diminished". Determined by the first 3 noted of the currently playing chord. Determied by function selectTriad
+var chord = ""; // If the currently playing chord is a triad then chord = triad, if it's a quadriad the name is determined by function selectQuadriad
+var quadriad = false; // Boolean value which determines if the played chord is a triad or a quadriad.
+
+$("#quadriad-switch-input").on('change', function() {
+  if ($(this).is(':checked')) {
+    quadriad = $(this).is(':checked'); // true, chords are quadriads
+    g7.gain.setValueAtTime(0, audioCtx.currentTime);
+    g7.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
+    chord = chord = selectQuadriad(resulting_mode,index);
+    chart.options.elements.center.text = degree_name + " (" + chord + ")";
+    chart.update();
+  }
+  else {
+    quadriad = $(this).is(':checked'); // false, chords are triads
+    g7.gain.setValueAtTime(1, audioCtx.currentTime);
+    g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+    chord = triad
+    chart.options.elements.center.text = degree_name + " (" + chord + ")";
+    chart.update();
+  }
+});
+
 // Color Wheel:
 var ctx = document.getElementById('colorWheel').getContext('2d');
 var chart = new Chart(ctx, {
@@ -95,8 +159,6 @@ var height;
 var resulting_palette;
 var mode_visualizer = document.getElementById('mode-visualizer');
 var hue_hist = []; // Hue histogram of the quantized image (max 12 hues)
-var resulting_mode = [];
-var mode_intervals = [];
 var opts = {
 	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
@@ -114,46 +176,6 @@ var opts = {
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
 };
 
-//modes in binary form
-var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
-var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
-var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
-var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
-var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
-var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
-var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
-var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian];
-
-//function to rotate arrays
-function arrayRotate(arr, count) {
-  count -= arr.length * Math.floor(count / arr.length);
-  arr.push.apply(arr, arr.splice(0, count));
-  return arr;
-}
-
-// Create web audio API context:
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-// create Oscillators and Gain nodes:
-var osc1 = audioCtx.createOscillator();
-var osc2 = audioCtx.createOscillator();
-var osc3 = audioCtx.createOscillator();
-var osc4 = audioCtx.createOscillator();
-osc1.type = 'sawtooth';
-osc2.type = 'sawtooth';
-osc3.type = 'sawtooth';
-osc4.type = 'triangle';
-var g = audioCtx.createGain();
-g.gain.value = 0;
-osc1.connect(g);
-osc2.connect(g);
-osc3.connect(g);
-osc4.connect(g);
-g.connect(audioCtx.destination); 
-osc1.start();
-osc2.start();
-osc3.start();
-osc4.start();
-
 // Handle input image:
 function readURL(input) {
   if (input.files && input.files[0]) {
@@ -164,6 +186,7 @@ function readURL(input) {
       $('.image-upload-wrap').hide();
       $('.file-upload-content').show();
       $('#quadriad-switch').show();
+      $('#quadriad-text').show();
       background.classList.remove('initial-bg');
       background.classList.add('updated-bg');
       background.style.backgroundImage = 'url(' + e.target.result + ')';
@@ -286,7 +309,10 @@ function readURL(input) {
       img.src = e.target.result;
 
       // Eyedropper functionalities:
-      $("#myimage").click(function (e) {
+      var firstPlay = true;
+      $("#myimage").mousemove(function (e) {
+        audioCtx.resume();
+
         var mouseX = parseInt(e.offsetX);
         var mouseY = parseInt(e.offsetY);
         var pxData = context.getImageData(mouseX, mouseY, 1, 1);
@@ -300,49 +326,54 @@ function readURL(input) {
         if (!grey) {
           var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
           $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-          var index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
-          console.log(index);
+          index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
           // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
           var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
           var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
           var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
           var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
-          //var skip3 = nextInterval(resulting_mode, (index + int2)) + int3; 
-          //var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
-          osc1.frequency.value = 440*Math.pow(2, index/12); 
-
-          var current_note_name="";
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 0/12))) {current_note_name="A "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 1/12))) {current_note_name="A# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 2/12))) {current_note_name="B "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 3/12))) {current_note_name="C "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 4/12))) {current_note_name="C# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 5/12))) {current_note_name="D "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 6/12))) {current_note_name="D# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 7/12))) {current_note_name="E "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 8/12))) {current_note_name="F "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 9/12))) {current_note_name="F# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 10/12))) {current_note_name="G "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 11/12))) {current_note_name="G# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 12/12))) {current_note_name="A "}
-        
-          osc2.frequency.value = 440*Math.pow(2, (index + int1)/12);
-          osc3.frequency.value = 440*Math.pow(2, (index + int2)/12);
-          osc4.frequency.value = (440*Math.pow(2, index/12))/2; // Bass note
-          g.gain.setValueAtTime(0, audioCtx.currentTime);
-          g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
-          //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-          var triad = selectTriad(resulting_mode,index);
-          var degree = mode_intervals.indexOf(index);
-          var degree_name = degreeName(degree, triad);
+          var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
+          var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
+          
+          triad = selectTriad(resulting_mode,index);;
+          if (quadriad) {
+            chord = selectQuadriad(resulting_mode,index);
+          }
+          else {
+            chord = triad;
+          }
+          if (firstPlay) {
+            osc1.frequency.value = 440*Math.pow(2, index/12); // Root note
+            osc2.frequency.value = 440*Math.pow(2, (index + int1)/12); // 3rd
+            osc3.frequency.value = 440*Math.pow(2, (index + int2)/12); // 5th
+            osc4.frequency.value = 440*Math.pow(2, (index + int3)/12); // 7th
+            g.gain.setValueAtTime(0, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+            firstPlay = false;
+          }
+          else {
+            osc1.frequency.linearRampToValueAtTime(440*Math.pow(2, index/12), audioCtx.currentTime + 0.5); // Root note
+            osc2.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int1)/12), audioCtx.currentTime + 0.5); // 3rd
+            osc3.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int2)/12), audioCtx.currentTime + 0.5); // 5th
+            osc4.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int3)/12), audioCtx.currentTime + 0.5); // 7th
+          }
+          degree = mode_intervals.indexOf(index);
+          degree_name = degreeName(degree, triad);
           // chart.options.elements.center.text = current_note_name.concat(triad);
-          chart.options.elements.center.text = degree_name + " (" + triad + ")";
+          chart.options.elements.center.text = degree_name + " (" + chord + ")";
           chart.update();
         }
 
         else { // Ignore greys
           g.gain.setValueAtTime(0, audioCtx.currentTime);
+          g7.gain.setValueAtTime(0, audioCtx.currentTime);
         }
+      });
+
+      $('#myimage').mouseleave(function(e) {
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        firstPlay = true;
       });
     };
     reader.readAsDataURL(file);
@@ -366,7 +397,9 @@ function removeUpload() {
   $('.image-upload-wrap').show();
   mode_visualizer.innerHTML = "";
   $('#quadriad-switch').hide();
-  g.gain.value = 0;
+  $('#quadriad-text').hide();
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g7.gain.setValueAtTime(0, audioCtx.currentTime);
   hue_hist = []; 
   resulting_mode = [];
   mode_intervals = [];
@@ -440,6 +473,14 @@ function hslToRgb(h, s, l) {
   }
 
   return [ r * 255, g * 255, b * 255 ];
+}
+/************************** 
+* function to rotate arrays
+**************************/
+function arrayRotate(arr, count) {
+  count -= arr.length * Math.floor(count / arr.length);
+  arr.push.apply(arr, arr.splice(0, count));
+  return arr;
 }
 
 /******************************************* 
