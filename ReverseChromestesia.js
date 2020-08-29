@@ -25,6 +25,15 @@ osc3.start();
 osc4.start();
 
 // Musical variables
+//modes in binary form
+var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
+var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
+var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
+var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
+var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
+var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
+var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
+var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian]; // Array of modes
 var resulting_mode = []; // Mode obtained from the image in binary form
 var mode_intervals = []; // Intervals in semitones (from the tonic) of the obtained mode. Contains 7 values.
 var index; // Distance in semitones between the root note of the playing chord and the the tonic
@@ -167,16 +176,6 @@ var opts = {
 	colorDist: "euclidean",  // method used to determine color distance, can also be "manhattan"
 };
 
-//modes in binary form
-var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
-var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
-var mixolydian= [1,0,1,0,1,1,0,1,0,1,1,0];
-var dorian =    [1,0,1,1,0,1,0,1,0,1,1,0];
-var aeolian =   [1,0,1,1,0,1,0,1,1,0,1,0];
-var phrygian =  [1,1,0,1,0,1,0,1,1,0,1,0];
-var locrian =   [1,1,0,1,0,1,1,0,1,0,1,0];
-var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian];
-
 // Handle input image:
 function readURL(input) {
   if (input.files && input.files[0]) {
@@ -310,7 +309,8 @@ function readURL(input) {
       img.src = e.target.result;
 
       // Eyedropper functionalities:
-      $("#myimage").click(function (e) {
+      var firstPlay = true;
+      $("#myimage").mousemove(function (e) {
         audioCtx.resume();
 
         var mouseX = parseInt(e.offsetX);
@@ -334,26 +334,7 @@ function readURL(input) {
           var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
           var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
           var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
-          osc1.frequency.value = 440*Math.pow(2, index/12); // Root note
-
-          /*var current_note_name="";
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 0/12))) {current_note_name="A "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 1/12))) {current_note_name="A# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 2/12))) {current_note_name="B "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 3/12))) {current_note_name="C "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 4/12))) {current_note_name="C# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 5/12))) {current_note_name="D "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 6/12))) {current_note_name="D# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 7/12))) {current_note_name="E "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 8/12))) {current_note_name="F "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 9/12))) {current_note_name="F# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 10/12))) {current_note_name="G "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 11/12))) {current_note_name="G# "}
-          if (Math.round(osc1.frequency.value)==Math.round(440*Math.pow(2, 12/12))) {current_note_name="A "}*/
-        
-          osc2.frequency.value = 440*Math.pow(2, (index + int1)/12); // 3rd
-          osc3.frequency.value = 440*Math.pow(2, (index + int2)/12); // 5th
-          osc4.frequency.value = 440*Math.pow(2, (index + int3)/12); // 7th
+          
           triad = selectTriad(resulting_mode,index);;
           if (quadriad) {
             chord = selectQuadriad(resulting_mode,index);
@@ -361,12 +342,21 @@ function readURL(input) {
           else {
             chord = triad;
           }
-          g.gain.setValueAtTime(0, audioCtx.currentTime);
-          g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
-          /*g7.gain.setValueAtTime(0, audioCtx.currentTime);
-          g7.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);*/
-          //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-          //g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+          if (firstPlay) {
+            osc1.frequency.value = 440*Math.pow(2, index/12); // Root note
+            osc2.frequency.value = 440*Math.pow(2, (index + int1)/12); // 3rd
+            osc3.frequency.value = 440*Math.pow(2, (index + int2)/12); // 5th
+            osc4.frequency.value = 440*Math.pow(2, (index + int3)/12); // 7th
+            g.gain.setValueAtTime(0, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+            firstPlay = false;
+          }
+          else {
+            osc1.frequency.linearRampToValueAtTime(440*Math.pow(2, index/12), audioCtx.currentTime + 0.5); // Root note
+            osc2.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int1)/12), audioCtx.currentTime + 0.5); // 3rd
+            osc3.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int2)/12), audioCtx.currentTime + 0.5); // 5th
+            osc4.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int3)/12), audioCtx.currentTime + 0.5); // 7th
+          }
           degree = mode_intervals.indexOf(index);
           degree_name = degreeName(degree, triad);
           // chart.options.elements.center.text = current_note_name.concat(triad);
@@ -378,6 +368,12 @@ function readURL(input) {
           g.gain.setValueAtTime(0, audioCtx.currentTime);
           g7.gain.setValueAtTime(0, audioCtx.currentTime);
         }
+      });
+
+      $('#myimage').mouseleave(function(e) {
+        g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        firstPlay = true;
       });
     };
     reader.readAsDataURL(file);
