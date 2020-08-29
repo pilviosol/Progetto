@@ -97,6 +97,15 @@ var mode_visualizer = document.getElementById('mode-visualizer');
 var hue_hist = []; // Hue histogram of the quantized image (max 12 hues)
 var resulting_mode = [];
 var mode_intervals = [];
+var quadriad = false;
+$("#quadriad-switch-input").on('change', function() {
+  if ($(this).is(':checked')) {
+    quadriad = $(this).is(':checked');
+  }
+  else {
+    quadriad = $(this).is(':checked');
+  }
+});
 var opts = {
 	colors: 24,              // desired palette size
 	method: 2,               // histogram method, 2: min-population threshold within subregions; 1: global top-population
@@ -164,6 +173,7 @@ function readURL(input) {
       $('.image-upload-wrap').hide();
       $('.file-upload-content').show();
       $('#quadriad-switch').show();
+      $('#quadriad-text').show();
       background.classList.remove('initial-bg');
       background.classList.add('updated-bg');
       background.style.backgroundImage = 'url(' + e.target.result + ')';
@@ -301,7 +311,6 @@ function readURL(input) {
           var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
           $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
           var index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
-          console.log(index);
           // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
           var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
           var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
@@ -332,11 +341,17 @@ function readURL(input) {
           g.gain.setValueAtTime(0, audioCtx.currentTime);
           g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 1);
           //g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-          var triad = selectTriad(resulting_mode,index);
+          var chord;
+          if (quadriad) 
+            chord = selectQuadriad(resulting_mode,index);
+          
+          else 
+            chord = selectTriad(resulting_mode,index);
+
           var degree = mode_intervals.indexOf(index);
-          var degree_name = degreeName(degree, triad);
+          var degree_name = degreeName(degree, chord);
           // chart.options.elements.center.text = current_note_name.concat(triad);
-          chart.options.elements.center.text = degree_name + " (" + triad + ")";
+          chart.options.elements.center.text = degree_name + " (" + chord + ")";
           chart.update();
         }
 
@@ -366,6 +381,7 @@ function removeUpload() {
   $('.image-upload-wrap').show();
   mode_visualizer.innerHTML = "";
   $('#quadriad-switch').hide();
+  $('#quadriad-text').hide();
   g.gain.value = 0;
   hue_hist = []; 
   resulting_mode = [];
