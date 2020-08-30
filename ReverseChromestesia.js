@@ -45,7 +45,13 @@ osc3.start();
 osc4.start();
 
 // Musical variables
-var note_names = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+var note_names = [];
+var selected_tonic = 0; // Distance in semitones between the selected tonic and A3 = 220 Hz
+$('#select-tonic').on('change', function() {
+  selected_tonic = this.value - 1;
+  note_names = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"];
+  arrayRotate(note_names, selected_tonic);
+});
 //modes in binary form
 var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
 var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
@@ -63,7 +69,6 @@ var degree_name = ""; // Degree of the root note of the currently playing chord 
 var triad = ""; // Can be "minor", "MAJOR", or "diminished". Determined by the first 3 noted of the currently playing chord. Determied by function selectTriad
 var chord = ""; // If the currently playing chord is a triad then chord = triad, if it's a quadriad the name is determined by function selectQuadriad
 var quadriad = false; // Boolean value which determines if the played chord is a triad or a quadriad.
-
 $("#quadriad-switch-input").on('change', function() {
   if ($(this).is(':checked')) {
     quadriad = $(this).is(':checked'); // true, chords are quadriads
@@ -111,7 +116,6 @@ var chart = new Chart(ctx, {
                           ], // HSL Circle
         borderWidth: 5,
         data: [1,1,1,1,1,1,1,1,1,1,1,1],
-        
        }, 
     ]
   },
@@ -348,11 +352,12 @@ function readURL(input) {
             var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
             var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
             var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
-            osc0.frequency.value = (440*Math.pow(2, index/12))/2;
-            osc1.frequency.value = 440*Math.pow(2, index/12); // Root note
-            osc2.frequency.value = 440*Math.pow(2, (index + int1)/12); // 3rd
-            osc3.frequency.value = 440*Math.pow(2, (index + int2)/12); // 5th
-            osc4.frequency.value = 440*Math.pow(2, (index + int3)/12); // 7th
+            index = index + selected_tonic;
+            osc0.frequency.value = (220*Math.pow(2, index/12))/2;
+            osc1.frequency.value = 220*Math.pow(2, index/12); // Root note
+            osc2.frequency.value = 220*Math.pow(2, (index + int1)/12); // 3rd
+            osc3.frequency.value = 220*Math.pow(2, (index + int2)/12); // 5th
+            osc4.frequency.value = 220*Math.pow(2, (index + int3)/12); // 7th
 
             if (silent) { // Increase volume "slowly" when there's no previous sound playing
               g.gain.setValueAtTime(0, audioCtx.currentTime);
