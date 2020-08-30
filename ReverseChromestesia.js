@@ -1,30 +1,51 @@
 // Create web audio API context:
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-// create Oscillators and Gain nodes:
+// create Oscillators, Filter and Gain nodes:
+var osc0 = audioCtx.createOscillator(); // Bass note
 var osc1 = audioCtx.createOscillator(); // Root note
 var osc2 = audioCtx.createOscillator(); // 3rd
 var osc3 = audioCtx.createOscillator(); // 5th
 var osc4 = audioCtx.createOscillator(); // 7th
+osc0.type = 'square';
 osc1.type = 'sawtooth';
 osc2.type = 'sawtooth';
 osc3.type = 'sawtooth';
-osc4.type = 'triangle';
-var g = audioCtx.createGain();
+osc4.type = 'sawtooth';
+var f = audioCtx.createBiquadFilter();
+f.type = 'lowpass';
+f.frequency.setValueAtTime(2500, audioCtx.currentTime);
+var g = audioCtx.createGain(); // Output gain
+var gbass = audioCtx.createGain();
+var gr = audioCtx.createGain();
+var g3 = audioCtx.createGain();
+var g5 = audioCtx.createGain();
 var g7 = audioCtx.createGain();
-g.gain.value = 0; // Gain for the triad
+gbass.gain.value = 0.5;
+gr.gain.value = 0.7;
+g3.gain.value = 0.7;
+g5.gain.value = 0.7;
 g7.gain.value = 0; // Gain for the 7th
-osc1.connect(g);
-osc2.connect(g);
-osc3.connect(g);
+g.gain.value = 0; // Gain for the triad + bass
+osc0.connect(gbass);
+osc1.connect(gr);
+osc2.connect(g3);
+osc3.connect(g5);
 osc4.connect(g7);
-g.connect(audioCtx.destination); 
-g7.connect(audioCtx.destination);
+gbass.connect(f);
+gr.connect(f);
+g3.connect(f);
+g5.connect(f);
+g7.connect(f);
+f.connect(g); 
+g.connect(audioCtx.destination);
+osc0.start();
 osc1.start();
 osc2.start();
 osc3.start();
 osc4.start();
 
 // Musical variables
+var note_names = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
 //modes in binary form
 var lydian =    [1,0,1,0,1,0,1,1,0,1,0,1];
 var ionian =    [1,0,1,0,1,1,0,1,0,1,0,1];
@@ -59,7 +80,7 @@ var chart = new Chart(ctx, {
   type: 'doughnut', 
   
   data: {
-    labels: ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" ],
+    labels: note_names, 
     datasets: [
       {
         /*backgroundColor: [ 'rgb(255, 255, 0)',
@@ -114,7 +135,7 @@ var chart = new Chart(ctx, {
 }); 
 
 // Colors in the Color Wheel:
-rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
+// rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
 var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // The 12 hues of our circle, filled in the next step
 var palette = []; // Built in the next step
@@ -300,9 +321,9 @@ function readURL(input) {
 
       // Eyedropper functionalities:
       var silent = true; // No sound is playing
+      var lastStart = 0; // Last time a chord was played
       $("#myimage").click(function (e) {
-        audioCtx.resume();
-
+        //audioCtx.resume();
         var mouseX = parseInt(e.offsetX);
         var mouseY = parseInt(e.offsetY);
         var pxData = context.getImageData(mouseX, mouseY, 1, 1);
@@ -313,73 +334,74 @@ function readURL(input) {
           grey = true;
         }
 
-        if (!grey) {
-          var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
-          $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
-          index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
-          if (resulting_mode[index] == 0) index--; // Handle colors that are not present in the resulting mode
-          // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
-          var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
-          var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
-          var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
-          var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
-          var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
-          var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
+        if (audioCtx.currentTime - lastStart > 0.6) { // Limit the speed of chord changes to avoid conflicts with envelopes
+          if (!grey) {
 
-          if (silent) { // Increase volume "slowly" when the mouse enters the image the first time
+            var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
+            $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
+            index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
+            if (resulting_mode[index] == 0) index--; // Handle colors that are not present in the resulting mode
+            // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
+            var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
+            var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
+            var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
+            var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
+            var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
+            var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
+            osc0.frequency.value = (440*Math.pow(2, index/12))/2;
             osc1.frequency.value = 440*Math.pow(2, index/12); // Root note
             osc2.frequency.value = 440*Math.pow(2, (index + int1)/12); // 3rd
             osc3.frequency.value = 440*Math.pow(2, (index + int2)/12); // 5th
             osc4.frequency.value = 440*Math.pow(2, (index + int3)/12); // 7th
-            g.gain.setValueAtTime(0, audioCtx.currentTime);
-            g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
-            if (quadriad) {
-              g7.gain.setValueAtTime(0, audioCtx.currentTime);
-              g7.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
-            }
-            silent = false;
-          }
-          else { // Glide from the previous chord to the current avoiding abrupt changes
-            osc1.frequency.linearRampToValueAtTime(440*Math.pow(2, index/12), audioCtx.currentTime + 0.1); // Root note
-            osc2.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int1)/12), audioCtx.currentTime + 0.1); // 3rd
-            osc3.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int2)/12), audioCtx.currentTime + 0.1); // 5th
-            osc4.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int3)/12), audioCtx.currentTime + 0.1); // 7th
-            
-          }
-          
-          triad = selectTriad(resulting_mode, index); 
-          degree = mode_intervals.indexOf(index); // Degree of the root note of the chord
-          degree_name = degreeName(degree, triad);
-          if (quadriad) { 
-            chord = selectQuadriad(resulting_mode,index);
-          }
-          else {
-            chord = triad;
-          }
-          
-          // chart.options.elements.center.text = current_note_name.concat(triad);
-          chart.options.elements.center.text = degree_name + " (" + chord + ")";
-          chart.update();
-        }
 
-        else { // Turn the sound off when clicking greys
-          if (!silent) {
-            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-            g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-            silent = true;
-            chart.options.elements.center.text = "";
+            if (silent) { // Increase volume "slowly" when there's no previous sound playing
+              g.gain.setValueAtTime(0, audioCtx.currentTime);
+              g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+              if (quadriad) {
+                g7.gain.setValueAtTime(0, audioCtx.currentTime);
+                g7.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+              }
+              silent = false;
+            }
+            
+            triad = selectTriad(resulting_mode, index); 
+            degree = mode_intervals.indexOf(index); // Degree of the root note of the chord
+            degree_name = degreeName(degree, triad);
+            if (quadriad) { 
+              chord = selectQuadriad(resulting_mode,index);
+            }
+            else {
+              chord = triad;
+            }
+
+            // chart.options.elements.center.text = current_note_name.concat(triad);
+            chart.options.elements.center.text = degree_name + " (" + chord + ")";
             chart.update();
+            lastStart = audioCtx.currentTime;
+          }
+
+          else { // Turn the sound off when clicking greys
+            if (!silent) {
+              g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+              g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+              silent = true;
+              chart.options.elements.center.text = "";
+              chart.update();
+            }
           }
         }
       });
 
       $('#myimage').mouseleave(function(e) {
         if (!silent) {
+          g.gain.setValueAtTime(1, audioCtx.currentTime);
+          if (quadriad) g7.gain.setValueAtTime(1, audioCtx.currentTime);
           g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
           g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
           silent = true;
           chart.options.elements.center.text = "";
           chart.update();
+          $(".change-image").css("backgroundColor", "rgb(0,0,0)");
         }
       });
     };
