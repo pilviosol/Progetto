@@ -327,6 +327,7 @@ function readURL(input) {
           var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
           $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
           index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
+          if (resulting_mode[index] == 0) index--;
           // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
           var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
           var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
@@ -334,11 +335,13 @@ function readURL(input) {
           var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
           var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
           var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
-          
-          triad = selectTriad(resulting_mode,index);
+          triad = selectTriad(resulting_mode, index); 
+
           if (triad=="undefined"){
+            console.log(triad);
             triad=nearestTriad(resulting_mode,index)[0];
             degree_name=nearestTriad(resulting_mode,index)[1];
+            console.log(triad);
           }
           else {
             degree = mode_intervals.indexOf(index);
@@ -351,7 +354,7 @@ function readURL(input) {
           else {
             chord = triad;
           }
-          if (firstPlay) {
+          if (firstPlay) { // Increase volume "slowly" when the mouse enters the image the first time
             osc1.frequency.value = 440*Math.pow(2, index/12); // Root note
             osc2.frequency.value = 440*Math.pow(2, (index + int1)/12); // 3rd
             osc3.frequency.value = 440*Math.pow(2, (index + int2)/12); // 5th
@@ -360,7 +363,7 @@ function readURL(input) {
             g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
             firstPlay = false;
           }
-          else {
+          else { // Glide from the previous chord to the current avoiding abrupt changes
             osc1.frequency.linearRampToValueAtTime(440*Math.pow(2, index/12), audioCtx.currentTime + 0.5); // Root note
             osc2.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int1)/12), audioCtx.currentTime + 0.5); // 3rd
             osc3.frequency.linearRampToValueAtTime(440*Math.pow(2, (index + int2)/12), audioCtx.currentTime + 0.5); // 5th
