@@ -20,6 +20,20 @@ var gr = audioCtx.createGain();
 var g3 = audioCtx.createGain();
 var g5 = audioCtx.createGain();
 var g7 = audioCtx.createGain();
+reverbNode = audioCtx.createConvolver();
+  /* 
+  * impulseResponse is defined in another file as a base64 encoded string,
+  * we need to convert it to a binary array.
+  */
+  var reverbSoundArrayBuffer = base64ToArrayBuffer(impulseResponse);
+  audioCtx.decodeAudioData(reverbSoundArrayBuffer, 
+    function(buffer) {
+      reverbNode.buffer = buffer;
+    },
+    function(e) {
+      alert("Error when decoding audio data" + e.err);
+    }
+  );
 gbass.gain.value = 0.5;
 gr.gain.value = 0.7;
 g3.gain.value = 0.7;
@@ -36,8 +50,10 @@ gr.connect(f);
 g3.connect(f);
 g5.connect(f);
 g7.connect(f);
-f.connect(g); 
-g.connect(audioCtx.destination);
+f.connect(g);
+g.connect(reverbNode);
+reverbNode.connect(audioCtx.destination);
+
 osc0.start();
 osc1.start();
 osc2.start();
@@ -116,7 +132,8 @@ var chart = new Chart(ctx, {
                            'rgb(255, 0, 255)', 
                            'rgb(255, 0, 127)'
                           ], // HSL Circle
-        borderWidth: 5,
+        borderWidth: 3,
+        // borderColor: 'rgb(0, 0, 0)',
         data: [1,1,1,1,1,1,1,1,1,1,1,1],
        }, 
     ]
@@ -125,7 +142,10 @@ var chart = new Chart(ctx, {
   options: {
     cutoutPercentage: 50,
     legend: {display: false,},
-    tooltips: {enabled: false,},
+    tooltips: {
+      enabled: false,
+      /*displayColors: false,*/
+    },
     elements: {
       center: {
         text: '',
@@ -294,7 +314,8 @@ function readURL(input) {
   
         //hues_r is the hue array w/ the most present hue at the first place
         hues_r = arrayRotate(hues, rot);
-       
+        arrayRotate(chart.data.datasets[0].backgroundColor, rot);
+        chart.update();
         /* 
         * Here's how we decide what's the most similar mode: for each element in common between the
         * resulting scale and one of the modes, the score of said mode increases by a number which is
@@ -345,8 +366,16 @@ function readURL(input) {
 
             var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
             $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
+            var colorup = playingColor;
+            var colordown = colorup;
+            while (hues_r.indexOf(playingColor) == -1) { // Deal with incorrect roundings when calculating playingColor
+              colorup++;
+              colordown--;
+              if (hues_r.indexOf(colorup) != -1) playingColor = colorup;
+              if (hues_r.indexOf(colordown) != -1) playingColor = colordown;
+            }
             index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
-            if (resulting_mode[index] == 0) index--; // Handle colors that are not present in the resulting mode
+            if (resulting_mode[index] == 0) index--; // Handle colors that are not present in the resulting mode by choosing the previous note
             // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
             var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
             var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
@@ -382,7 +411,7 @@ function readURL(input) {
             }
 
             // chart.options.elements.center.text = current_note_name.concat(triad);
-            chart.options.elements.center.text = note_names[root] + chord + " (" + degree_name + ")";
+            chart.options.elements.center.text = note_names[index] + chord + " (" + degree_name + ")";
             chart.update();
             lastStart = audioCtx.currentTime;
           }
@@ -927,3 +956,14 @@ Chart.pluginService.register({
     }
   }
 });
+
+// Converts base64 encoded string to a binary array
+function base64ToArrayBuffer(base64) {
+  var binaryString = window.atob(base64);
+  var len = binaryString.length;
+  var bytes = new Uint8Array(len);
+  for (var i = 0; i < len; i++)        {
+      bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
