@@ -45,9 +45,10 @@ osc3.start();
 osc4.start();
 
 // Musical variables
-var note_names = [];
-var selected_tonic = 0; // Distance in semitones between the selected tonic and A3 = 220 Hz
-$('#select-tonic').on('change', function() {
+$('#select-tonic').prop('selectedIndex', 0); // Restore tonic selector to default value
+var note_names = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"];
+var selected_tonic = 0;
+$('#select-tonic').on('change', function() { // Rotate note names array accordingly to the selected tonic: default is A
   selected_tonic = this.value - 1;
   note_names = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"];
   arrayRotate(note_names, selected_tonic);
@@ -66,9 +67,10 @@ var mode_intervals = []; // Intervals in semitones (from the tonic) of the obtai
 var index; // Distance in semitones between the root note of the playing chord and the the tonic
 var degree; // Degree of the root note of the currently playing chord (int)
 var degree_name = ""; // Degree of the root note of the currently playing chord (String)
-var triad = ""; // Can be "minor", "MAJOR", or "diminished". Determined by the first 3 noted of the currently playing chord. Determied by function selectTriad
+var triad = ""; // Can be "min", "maj", or "dim". Determined by the first 3 noted of the currently playing chord. Determied by function selectTriad
 var chord = ""; // If the currently playing chord is a triad then chord = triad, if it's a quadriad the name is determined by function selectQuadriad
 var quadriad = false; // Boolean value which determines if the played chord is a triad or a quadriad.
+$("#quadriad-switch-input").prop( "checked", false ); // Restore quadriad toggle switch to "off" position
 $("#quadriad-switch-input").on('change', function() {
   if ($(this).is(':checked')) {
     quadriad = $(this).is(':checked'); // true, chords are quadriads
@@ -352,12 +354,12 @@ function readURL(input) {
             var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
             var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
             var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
-            index = index + selected_tonic;
-            osc0.frequency.value = (220*Math.pow(2, index/12))/2;
-            osc1.frequency.value = 220*Math.pow(2, index/12); // Root note
-            osc2.frequency.value = 220*Math.pow(2, (index + int1)/12); // 3rd
-            osc3.frequency.value = 220*Math.pow(2, (index + int2)/12); // 5th
-            osc4.frequency.value = 220*Math.pow(2, (index + int3)/12); // 7th
+            var root = index + selected_tonic;
+            osc0.frequency.value = (220*Math.pow(2, root/12))/2; // Bass note
+            osc1.frequency.value = 220*Math.pow(2, root/12); // Root note
+            osc2.frequency.value = 220*Math.pow(2, (root + int1)/12); // 3rd
+            osc3.frequency.value = 220*Math.pow(2, (root + int2)/12); // 5th
+            osc4.frequency.value = 220*Math.pow(2, (root + int3)/12); // 7th
 
             if (silent) { // Increase volume "slowly" when there's no previous sound playing
               g.gain.setValueAtTime(0, audioCtx.currentTime);
@@ -380,7 +382,7 @@ function readURL(input) {
             }
 
             // chart.options.elements.center.text = current_note_name.concat(triad);
-            chart.options.elements.center.text = degree_name + " (" + chord + ")";
+            chart.options.elements.center.text = note_names[root] + chord + " (" + degree_name + ")";
             chart.update();
             lastStart = audioCtx.currentTime;
           }
@@ -562,270 +564,97 @@ function selectTriad(resulting_mode, note) {
 //----------------------lydian------------------------------------
     case modes[0]:
       if (note==0||note==2||note==7) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==4||note==9||note==11) {
-        triad="minor";
+        triad="min";
       }
       else if (note==6) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
 //-------------------------ionian---------------------------------
     case modes[1]:
       if (note==0||note==5||note==7) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==2||note==4||note==9) {
-        triad="minor";
+        triad="min";
       }
       else if (note==11) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
 //---------------------------mixolydian-------------------------------
     case modes[2]:
       if (note==0||note==5||note==10) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==2||note==7||note==9) {
-        triad="minor";
+        triad="min";
       }
       else if (note==4) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
 //---------------------------dorian-------------------------------
     case modes[3]:
       if (note==3||note==5||note==10) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==0||note==2||note==7) {
-        triad="minor";
+        triad="min";
       }
       else if (note==9) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
 //----------------------------aeolian------------------------------
     case modes[4]:
       if (note==3||note==8||note==10) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==0||note==5||note==7) {
-        triad="minor";
+        triad="min";
       }
       else if (note==2) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
 //-------------------------phrygian---------------------------------
     case modes[5]:
       if (note==1||note==3||note==8) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==0||note==5||note==10) {
-        triad="minor";
+        triad="min";
       }
       else if (note==7) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
 //--------------------------locrian--------------------------------
     case modes[6]:
       if (note==1||note==6||note==8) {
-        triad="MAJOR";
+        triad="maj";
       }
       else if (note==3||note==5||note==10) {
-        triad="minor";
+        triad="min";
       }
       else if (note==0) {
-        triad="diminished";
+        triad="dim";
       }
       else triad="undefined";
       break;
     }
   return triad;
 }
-
-
-/*function nearestTriad(resulting_mode, note) {
-
-  var triad;
-  var degree;
-
-  switch(resulting_mode) {
-    //----------------------lydian------------------------------------
-  case modes[0]:
-      if (note== 1){
-        triad="MAJOR";
-        degree="i";
-      }
-      if (note== 3){
-        triad="minor";
-        degree="iii";
-      }
-      if (note== 5){
-        triad="diminished";
-        degree="iv";
-      }
-      if (note== 8){
-        triad="MAJOR";
-        degree="v";
-      }
-      if (note== 10){
-        triad="minor";
-        degree="vii";
-      }
-      break;
-//----------------------ionian------------------------------------
-case modes[1]:
-  if (note== 1){
-    triad="MAJOR";
-    degree="i";
-  }
-  if (note== 3){
-    triad="minor";
-    degree="iii";
-  }
-  if (note== 6){
-    triad="MAJOR";
-    degree="iv";
-  }
-  if (note== 8){
-    triad="minor";
-    degree="vi";
-  }
-  if (note== 10){
-    triad="diminished";
-    degree="vii";
-  }
-  break;
-  //----------------------mixolydian------------------------------------
-  case modes[2]:
-      if (note== 1){
-        triad="MAJOR";
-        degree="i";
-      }
-      if (note== 3){
-        triad="diminished";
-        degree="iii";
-      }
-      if (note== 6){
-        triad="MAJOR";
-        degree="iv";
-      }
-      if (note== 8){
-        triad="minor";
-        degree="vi";
-      }
-      if (note== 11){
-        triad="MAJOR";
-        degree="vii";
-      }
-      break;
-  //----------------------dorian------------------------------------
-  case modes[3]:
-      if (note== 1){
-        triad="minor";
-        degree="i";
-      }
-      if (note== 4){
-        triad="MAJOR";
-        degree="iii";
-      }
-      if (note== 6){
-        triad="minor";
-        degree="v";
-      }
-      if (note== 8){
-        triad="diminished";
-        degree="vi";
-      }
-      if (note== 11){
-        triad="MAJOR";
-        degree="vii";
-      }
-      break;
-      //----------------------aeolian------------------------------------
-  case modes[4]:
-    if (note== 1){
-      triad="diminished";
-      degree="ii";
-    }
-    if (note== 4){
-      triad="minor";
-      degree="iv";
-    }
-    if (note== 6){
-      triad="minor";
-      degree="v";
-    }
-    if (note== 9){
-      triad="MAJOR";
-      degree="vi";
-    }
-    if (note== 11){
-      triad="MAJOR";
-      degree="vii";
-    }
-    break;
-    //----------------------phrygian------------------------------------
-  case modes[5]:
-    if (note== 2){
-      triad="MAJOR";
-      degree="ii";
-    }
-    if (note== 4){
-      triad="minor";
-      degree="iv";
-    }
-    if (note== 6){
-      triad="diminished";
-      degree="v";
-    }
-    if (note== 9){
-      triad="MAJOR";
-      degree="vi";
-    }
-    if (note== 11){
-      triad="minor";
-      degree="vii";
-    }
-    break;
-    //----------------------locrian------------------------------------
-  case modes[6]:
-    if (note== 2){
-      triad="MAJOR";
-      degree="ii";
-    }
-    if (note== 4){
-      triad="minor";
-      degree="iii";
-    }
-    if (note== 7){
-      triad="MAJOR";
-      degree="v";
-    }
-    if (note== 9){
-      triad="minor";
-      degree="vii";
-    }
-    if (note== 11){
-      triad="diminished";
-      degree="i";
-    }
-    break;
-
-    }
-    return [triad, degree];
-}*/
 
 /**********************************************************
 * QUADRIADS: select the chord depending on the mode and the 
@@ -843,7 +672,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==0||note==7) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==2) {
         quadriad="7";
@@ -859,7 +688,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==0||note==5) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==7) {
         quadriad="7";
@@ -875,7 +704,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==10||note==5) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==0) {
         quadriad="7";
@@ -891,7 +720,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==10||note==3) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==5) {
         quadriad="7";
@@ -907,7 +736,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==3||note==8) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==10) {
         quadriad="7";
@@ -923,7 +752,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==1||note==8) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==3) {
         quadriad="7";
@@ -939,7 +768,7 @@ function selectQuadriad(resulting_mode, note) {
         quadriad="m7";
       }
       else if (note==1||note==6) {
-        quadriad="delta";
+        quadriad=String.fromCharCode(916);
       }
       else if (note==8) {
         quadriad="7";
@@ -952,181 +781,6 @@ function selectQuadriad(resulting_mode, note) {
     }
   return quadriad;
 }
-
-
-function nearestQuadriad(resulting_mode, note) {
-
-  var quadriad;
-  var degree;
-
-  switch(resulting_mode) {
-    //----------------------lydian------------------------------------
-  case modes[0]:
-      if (note== 1){
-        quadriad="delta";
-        degree="i";
-      }
-      if (note== 3){
-        quadriad="7";
-        degree="ii";
-      }
-      if (note== 5){
-        quadriad="m5/5-";
-        degree="iv";
-      }
-      if (note== 8){
-        quadriad="m7";
-        degree="vi";
-      }
-      if (note== 10){
-        quadriad="m7";
-        degree="vii";
-      }
-      break;
-//----------------------ionian------------------------------------
-case modes[1]:
-  if (note== 1){
-    quadriad="delta";
-    degree="i";
-  }
-  if (note== 3){
-    quadriad="m7";
-    degree="iii";
-  }
-  if (note== 6){
-    quadriad="7";
-    degree="v";
-  }
-  if (note== 8){
-    quadriad="m7";
-    degree="vi";
-  }
-  if (note== 10){
-    quadriad="m7/5-";
-    degree="vii";
-  }
-  break;
-  //----------------------mixolydian------------------------------------
-  case modes[2]:
-      if (note== 1){
-        quadriad="7";
-        degree="i";
-      }
-      if (note== 3){
-        quadriad="m7/5-";
-        degree="iii";
-      }
-      if (note== 6){
-        quadriad="m7";
-        degree="v";
-      }
-      if (note== 8){
-        quadriad="m7";
-        degree="vi";
-      }
-      if (note== 11){
-        quadriad="delta";
-        degree="vii";
-      }
-      break;
-  //----------------------dorian------------------------------------
-  case modes[3]:
-      if (note== 1){
-        quadriad="m7";
-        degree="i";
-      }
-      if (note== 4){
-        quadriad="7";
-        degree="iv";
-      }
-      if (note== 6){
-        quadriad="m7";
-        degree="v";
-      }
-      if (note== 8){
-        quadriad="m7/5-";
-        degree="vi";
-      }
-      if (note== 11){
-        quadriad="delta";
-        degree="vii";
-      }
-      break;
-      //----------------------aeolian------------------------------------
-  case modes[4]:
-    if (note== 1){
-      quadriad="m7/5-";
-      degree="ii";
-    }
-    if (note== 4){
-      quadriad="m7";
-      degree="iv";
-    }
-    if (note== 6){
-      quadriad="m7";
-      degree="v";
-    }
-    if (note== 9){
-      quadriad="delta";
-      degree="vi";
-    }
-    if (note== 11){
-      quadriad="7";
-      degree="vii";
-    }
-    break;
-    //----------------------phrygian------------------------------------
-  case modes[5]:
-    if (note== 2){
-      quadriad="delta";
-      degree="ii";
-    }
-    if (note== 4){
-      quadriad="7";
-      degree="iii";
-    }
-    if (note== 6){
-      quadriad="m7/5-";
-      degree="v";
-    }
-    if (note== 9){
-      quadriad="m7";
-      degree="vii";
-    }
-    if (note== 11){
-      quadriad="m7";
-      degree="i";
-    }
-    break;
-    //----------------------locrian------------------------------------
-  case modes[6]:
-    if (note== 2){
-      quadriad="m7";
-      degree="iii";
-    }
-    if (note== 4){
-      quadriad="m7";
-      degree="iv";
-    }
-    if (note== 7){
-      quadriad="delta";
-      degree="v";
-    }
-    if (note== 9){
-      quadriad="7";
-      degree="vi";
-    }
-    if (note== 11){
-      quadriad="m7/5-";
-      degree="i";
-    }
-    break;
-
-    }
-    return [quadriad, degree];
-}
-
-
 
 function modeName(mode) {
   var mode_name = ""
@@ -1181,8 +835,8 @@ function degreeName(degree, triad) {
       degree_name = "vii";
       break;
   }
-  if (triad == "MAJOR") degree_name = degree_name.toUpperCase();
-  if (triad == "diminished") degree_name = degree_name + String.fromCharCode(176);
+  if (triad == "maj") degree_name = degree_name.toUpperCase();
+  if (triad == "dim") degree_name = degree_name + String.fromCharCode(176);
   return degree_name;
 }
 
