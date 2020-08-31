@@ -11,34 +11,51 @@ osc1.type = 'sawtooth';
 osc2.type = 'sawtooth';
 osc3.type = 'sawtooth';
 osc4.type = 'sawtooth';
+
 var f = audioCtx.createBiquadFilter();
 f.type = 'lowpass';
 f.frequency.setValueAtTime(2500, audioCtx.currentTime);
-var g = audioCtx.createGain(); // Output gain
+
+var bufferSize = 2 * audioCtx.sampleRate,
+    noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+    output = noiseBuffer.getChannelData(0);
+for (var i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+}
+var whiteNoise = audioCtx.createBufferSource();
+whiteNoise.buffer = noiseBuffer;
+whiteNoise.loop = true;
+
+
+reverbNode = audioCtx.createConvolver();
+/* 
+* impulseResponse is defined in another file as a base64 encoded string,
+* we need to convert it to a binary array.
+*/
+var reverbSoundArrayBuffer = base64ToArrayBuffer(impulseResponse);
+audioCtx.decodeAudioData(reverbSoundArrayBuffer, 
+  function(buffer) {
+    reverbNode.buffer = buffer;
+  },
+  function(e) {
+    alert("Error when decoding audio data" + e.err);
+  }
+);
+
 var gbass = audioCtx.createGain();
 var gr = audioCtx.createGain();
 var g3 = audioCtx.createGain();
 var g5 = audioCtx.createGain();
 var g7 = audioCtx.createGain();
-reverbNode = audioCtx.createConvolver();
-  /* 
-  * impulseResponse is defined in another file as a base64 encoded string,
-  * we need to convert it to a binary array.
-  */
-  var reverbSoundArrayBuffer = base64ToArrayBuffer(impulseResponse);
-  audioCtx.decodeAudioData(reverbSoundArrayBuffer, 
-    function(buffer) {
-      reverbNode.buffer = buffer;
-    },
-    function(e) {
-      alert("Error when decoding audio data" + e.err);
-    }
-  );
-gbass.gain.value = 0.5;
-gr.gain.value = 0.7;
-g3.gain.value = 0.7;
-g5.gain.value = 0.7;
+var gn = audioCtx.createGain();
+var g = audioCtx.createGain(); // Output gain
+var singleGain = 0.07;
+gbass.gain.value = singleGain * 0.75;
+gr.gain.value = singleGain;
+g3.gain.value = singleGain;
+g5.gain.value = singleGain;
 g7.gain.value = 0; // Gain for the 7th
+gn.gain.value = 0 // Gain for the noise osc
 g.gain.value = 0; // Gain for the triad + bass
 osc0.connect(gbass);
 osc1.connect(gr);
@@ -51,9 +68,12 @@ g3.connect(f);
 g5.connect(f);
 g7.connect(f);
 f.connect(g);
+whiteNoise.connect(gn);
+gn.connect(g);
 g.connect(reverbNode);
 reverbNode.connect(audioCtx.destination);
 
+whiteNoise.start(0);
 osc0.start();
 osc1.start();
 osc2.start();
@@ -389,13 +409,15 @@ function readURL(input) {
             osc2.frequency.value = 220*Math.pow(2, (root + int1)/12); // 3rd
             osc3.frequency.value = 220*Math.pow(2, (root + int2)/12); // 5th
             osc4.frequency.value = 220*Math.pow(2, (root + int3)/12); // 7th
-
+            var noise_gain = rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[2];
+            console.log(noise_gain);
+            gn.gain.setValueAtTime(noise_gain * 0.07, audioCtx.currentTime);
             if (silent) { // Increase volume "slowly" when there's no previous sound playing
               g.gain.setValueAtTime(0, audioCtx.currentTime);
               g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
               if (quadriad) {
                 g7.gain.setValueAtTime(0, audioCtx.currentTime);
-                g7.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
+                g7.gain.linearRampToValueAtTime(singleGain, audioCtx.currentTime + 0.5);
               }
               silent = false;
             }
