@@ -256,13 +256,15 @@ function readURL(input) {
     var file  = input.files[0];
     reader.onload = function(e) {
       background = document.getElementById('dynamic-background');
+      background.classList.remove('initial-bg');
+      background.classList.add('updated-bg');
+      background.style.backgroundImage = 'url(' + e.target.result + ')';
       $('.image-upload-wrap').hide();
       $('.file-upload-content').show();
       $('#quadriad-switch').show();
       $('#quadriad-text').show();
-      background.classList.remove('initial-bg');
-      background.classList.add('updated-bg');
-      background.style.backgroundImage = 'url(' + e.target.result + ')';
+      fileupload_field = document.getElementById('file-upload');
+      fileupload_field.classList.remove('pre-upload');
       canvas = document.getElementById("myimage");
       context = canvas.getContext("2d");
       var img = new Image();
@@ -415,7 +417,6 @@ function readURL(input) {
           if (!grey) {
 
             var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
-            $(".change-image").css("backgroundColor", "rgb(" + pxData.data[0] + "," + pxData.data[1] + "," + pxData.data[2] + ")");
             var colorup = playingColor;
             var colordown = colorup;
             while (hues_r.indexOf(playingColor) == -1) { // Deal with incorrect roundings when calculating playingColor
@@ -535,7 +536,6 @@ function readURL(input) {
           arrayRotate(chart.data.datasets[0].backgroundColor, rot);
           chart.options.elements.center.text = "";
           chart.update();
-          $(".change-image").css("backgroundColor", "rgb(0,0,0)");
         }
       });
     };
@@ -558,6 +558,8 @@ function removeUpload() {
   $('.file-upload-input').replaceWith($('.file-upload-input').clone());
   $('.file-upload-content').hide();
   $('.image-upload-wrap').show();
+  fileupload_field = document.getElementById('file-upload');
+  fileupload_field.classList.add('pre-upload');
   mode_visualizer.innerHTML = "";
   $('#quadriad-switch').hide();
   $('#quadriad-text').hide();
