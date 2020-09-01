@@ -51,7 +51,7 @@
   <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 
   <div class="file-upload">
-    <div class="image-upload-wrap">
+    <div class="image-upload-wrap" onclick="startAudio()">
       <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
       <div class="drag-text">
         <h3>Drag and drop or browse an image</h3>
@@ -61,11 +61,10 @@
     <div class="file-upload-content">
       <canvas id="myimage"></canvas>
       <div class="new-image-wrap">
-        <button type="button" onclick="removeUpload()" class="change-image">Change image </button>
+        <button type="button" onclick="removeUpload()" class="change-image" onclick="resumeAudio()">Change image </button>
       </div>
     </div>
   </div>
 
-  <audio src="rev-response.wav"></audio>
   <script src="ReverseChromestesia.js"></script>
 </body>
