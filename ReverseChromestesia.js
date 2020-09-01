@@ -1,30 +1,20 @@
 // Create web audio API context:
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 // create Oscillators, Filter and Gain nodes:
-var osc0 = audioCtx.createOscillator(); // Bass note
-var osc1 = audioCtx.createOscillator(); // Root note
-var osc2 = audioCtx.createOscillator(); // 3rd
-var osc3 = audioCtx.createOscillator(); // 5th
-var osc4 = audioCtx.createOscillator(); // 7th
+osc0 = audioCtx.createOscillator(); // Bass note
+osc1 = audioCtx.createOscillator(); // Root note
+osc2 = audioCtx.createOscillator(); // 3rd
+osc3 = audioCtx.createOscillator(); // 5th
+osc4 = audioCtx.createOscillator(); // 7th
 osc0.type = 'square';
 osc1.type = 'sawtooth';
 osc2.type = 'sawtooth';
 osc3.type = 'sawtooth';
 osc4.type = 'sawtooth';
 // Lowpass filter
-var f = audioCtx.createBiquadFilter(); 
+f = audioCtx.createBiquadFilter(); 
 f.type = 'lowpass';
 f.frequency.setValueAtTime(2500, audioCtx.currentTime);
-// White noise
-/*var bufferSize = 2 * audioCtx.sampleRate,
-    noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-    output = noiseBuffer.getChannelData(0);
-for (var i = 0; i < bufferSize; i++) {
-    output[i] = Math.random() * 2 - 1;
-}
-var whiteNoise = audioCtx.createBufferSource();
-whiteNoise.buffer = noiseBuffer;
-whiteNoise.loop = true;*/
 // Reverb
 reverbNode = audioCtx.createConvolver();
 /* 
@@ -41,14 +31,14 @@ audioCtx.decodeAudioData(reverbSoundArrayBuffer,
   }
 );
 // Connections between nodes
-var gbass = audioCtx.createGain();
-var gr = audioCtx.createGain();
-var g3 = audioCtx.createGain();
-var g5 = audioCtx.createGain();
-var g7 = audioCtx.createGain();
-var gn = audioCtx.createGain();
-var g = audioCtx.createGain(); // Output gain
-var singleGain = 0.07;
+gbass = audioCtx.createGain();
+gr = audioCtx.createGain();
+g3 = audioCtx.createGain();
+g5 = audioCtx.createGain();
+g7 = audioCtx.createGain();
+gn = audioCtx.createGain();
+g = audioCtx.createGain(); // Output gain
+singleGain = 0.07;
 gbass.gain.value = singleGain * 0.75;
 gr.gain.value = singleGain;
 g3.gain.value = singleGain;
@@ -980,4 +970,89 @@ function degreeName(degree, triad) {
   if (triad == "maj") degree_name = degree_name.toUpperCase();
   if (triad == "dim") degree_name = degree_name + String.fromCharCode(176);
   return degree_name;
+}
+
+function startAudio() {
+  // create Oscillators, Filter and Gain nodes:
+  const osc0 = audioCtx.createOscillator(); // Bass note
+  const osc1 = audioCtx.createOscillator(); // Root note
+  const osc2 = audioCtx.createOscillator(); // 3rd
+  const osc3 = audioCtx.createOscillator(); // 5th
+  const osc4 = audioCtx.createOscillator(); // 7th
+  osc0.type = 'square';
+  osc1.type = 'sawtooth';
+  osc2.type = 'sawtooth';
+  osc3.type = 'sawtooth';
+  osc4.type = 'sawtooth';
+  // Lowpass filter
+  const f = audioCtx.createBiquadFilter(); 
+  f.type = 'lowpass';
+  f.frequency.setValueAtTime(2500, audioCtx.currentTime);
+  // White noise
+  /*var bufferSize = 2 * audioCtx.sampleRate,
+      noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+      output = noiseBuffer.getChannelData(0);
+  for (var i = 0; i < bufferSize; i++) {
+      output[i] = Math.random() * 2 - 1;
+  }
+  var whiteNoise = audioCtx.createBufferSource();
+  whiteNoise.buffer = noiseBuffer;
+  whiteNoise.loop = true;*/
+  // Reverb
+  const reverbNode = audioCtx.createConvolver();
+  /* 
+  * impulseResponse is defined in another file as a base64 encoded string,
+  * we need to convert it to a binary array.
+  */
+  var reverbSoundArrayBuffer = base64ToArrayBuffer(impulseResponse);
+  audioCtx.decodeAudioData(reverbSoundArrayBuffer, 
+    function(buffer) {
+      reverbNode.buffer = buffer;
+    },
+    function(e) {
+      alert("Error when decoding audio data" + e.err);
+    }
+  );
+  // Connections between nodes
+  const gbass = audioCtx.createGain();
+  const gr = audioCtx.createGain();
+  const g3 = audioCtx.createGain();
+  const g5 = audioCtx.createGain();
+  const g7 = audioCtx.createGain();
+  const gn = audioCtx.createGain();
+  const g = audioCtx.createGain(); // Output gain
+  const singleGain = 0.07;
+  gbass.gain.value = singleGain * 0.75;
+  gr.gain.value = singleGain;
+  g3.gain.value = singleGain;
+  g5.gain.value = singleGain;
+  g7.gain.value = 0; // Gain for the 7th
+  //gn.gain.value = 0 // Gain for the noise osc
+  g.gain.value = 0; // Gain for the triad + bass
+  osc0.connect(gbass);
+  osc1.connect(gr);
+  osc2.connect(g3);
+  osc3.connect(g5);
+  osc4.connect(g7);
+  gbass.connect(f);
+  gr.connect(f);
+  g3.connect(f);
+  g5.connect(f);
+  g7.connect(f);
+  f.connect(g);
+  //whiteNoise.connect(gn);
+  //gn.connect(g);
+  g.connect(reverbNode);
+  reverbNode.connect(audioCtx.destination);
+  //Starting sources:
+  //whiteNoise.start(0);
+  osc0.start();
+  osc1.start();
+  osc2.start();
+  osc3.start();
+  osc4.start();
+}
+
+function resumeAudio() {
+  audioCtx.resume();
 }
