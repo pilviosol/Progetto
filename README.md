@@ -30,10 +30,12 @@ After that, a quantized version of the image is shown on the page and the user c
 * **change image**: button that let the uploading of another image to be played
 
 ### HOW DOES IT WORKS?
-Here's the block diagram of the principle of operation of the application: IMMAGINE DEL BLOCK DIAGRAM
+Here's the block diagram of the principle of operation of the application: 
+![block_diagram](/images/block_diagram.png)
 The first block is pretty self explaining: the application starts with the user uploading an image. The uploaded image is the **quantized**. What does it mean? A jpg image can have more than 16 millions of colors. But we have only 12 notes. So for every pixel the application will compute the *nearest color* between the 12 present into the color wheel palette and, by doing so, transforms the image in a 12-color playable version of itself. Then the application will perform the **color to sound mapping** in three phases:
 1. computation of the mode: the uploaded image will have some of the 12 palette colors that represent the 12 notes and other not. Depending also on the quantity of colors present in the image, a scoring system is then cycled for every mode picking up the most similar;
-2. computation of intervals: once established the mode of the image, a function computes the intervals (2 intervals if triad modality, 3 otherwise) and triggers the oscillators starting the following routin IMMAGINE DEL ROUTING;
+2. computation of intervals: once established the mode of the image, a function computes the intervals (2 intervals if triad modality, 3 otherwise) and triggers the oscillators starting the following routing:
+![routing](/images/routing.png)
 3. construction of triads and quadriads: depending on the mode and on the root note that is played, the names of the triads and quadriads are shown in the center of the root note.
 Everything is ready, the image can be played doing fancy chord progressions.
 
