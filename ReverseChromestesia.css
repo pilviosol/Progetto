@@ -132,12 +132,12 @@
   font-weight: 700;
 }
 
-.change-image:hover {
+/*.change-image:hover {
   background: rgb(55, 55, 55);
   color: #ffffff;
   transition: all .2s ease;
   cursor: pointer;
-}
+}*/
 
 .change-image:active {
   border: 0;

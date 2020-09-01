@@ -11,12 +11,12 @@ osc1.type = 'sawtooth';
 osc2.type = 'sawtooth';
 osc3.type = 'sawtooth';
 osc4.type = 'sawtooth';
-
-var f = audioCtx.createBiquadFilter();
+// Lowpass filter
+var f = audioCtx.createBiquadFilter(); 
 f.type = 'lowpass';
 f.frequency.setValueAtTime(2500, audioCtx.currentTime);
-
-var bufferSize = 2 * audioCtx.sampleRate,
+// White noise
+/*var bufferSize = 2 * audioCtx.sampleRate,
     noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
     output = noiseBuffer.getChannelData(0);
 for (var i = 0; i < bufferSize; i++) {
@@ -24,9 +24,8 @@ for (var i = 0; i < bufferSize; i++) {
 }
 var whiteNoise = audioCtx.createBufferSource();
 whiteNoise.buffer = noiseBuffer;
-whiteNoise.loop = true;
-
-
+whiteNoise.loop = true;*/
+// Reverb
 reverbNode = audioCtx.createConvolver();
 /* 
 * impulseResponse is defined in another file as a base64 encoded string,
@@ -41,7 +40,7 @@ audioCtx.decodeAudioData(reverbSoundArrayBuffer,
     alert("Error when decoding audio data" + e.err);
   }
 );
-
+// Connections between nodes
 var gbass = audioCtx.createGain();
 var gr = audioCtx.createGain();
 var g3 = audioCtx.createGain();
@@ -55,7 +54,7 @@ gr.gain.value = singleGain;
 g3.gain.value = singleGain;
 g5.gain.value = singleGain;
 g7.gain.value = 0; // Gain for the 7th
-gn.gain.value = 0 // Gain for the noise osc
+//gn.gain.value = 0 // Gain for the noise osc
 g.gain.value = 0; // Gain for the triad + bass
 osc0.connect(gbass);
 osc1.connect(gr);
@@ -68,12 +67,12 @@ g3.connect(f);
 g5.connect(f);
 g7.connect(f);
 f.connect(g);
-whiteNoise.connect(gn);
-gn.connect(g);
+//whiteNoise.connect(gn);
+//gn.connect(g);
 g.connect(reverbNode);
 reverbNode.connect(audioCtx.destination);
-
-whiteNoise.start(0);
+//Starting sources:
+//whiteNoise.start(0);
 osc0.start();
 osc1.start();
 osc2.start();
@@ -101,6 +100,9 @@ var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian]; //
 var resulting_mode = []; // Mode obtained from the image in binary form
 var mode_intervals = []; // Intervals in semitones (from the tonic) of the obtained mode. Contains 7 values.
 var index; // Distance in semitones between the root note of the playing chord and the the tonic
+var int1;
+var int2;
+var int3;
 var degree; // Degree of the root note of the currently playing chord (int)
 var degree_name = ""; // Degree of the root note of the currently playing chord (String)
 var triad = ""; // Can be "min", "maj", or "dim". Determined by the first 3 noted of the currently playing chord. Determied by function selectTriad
@@ -117,6 +119,45 @@ $("#quadriad-switch-input").on('change', function() {
 });
 
 // Color Wheel:
+/*var wheelBackground = [ 'rgb(255, 255, 0)',
+                          'rgb(255, 132, 0)',
+                          'rgb(255, 0, 0)',
+                          'rgb(247, 0, 64)',
+                          'rgb(239, 2, 126)',
+                          'rgb(131, 1, 126)',
+                          'rgb(19, 0, 123)',
+                          'rgb(10, 82, 165)',
+                          'rgb(0, 159, 197)',
+                          'rgb(0, 147, 126)',
+                          'rgb(0, 140, 57)', 
+                          'rgb(130, 198, 28)'
+                        ]; // RGB Circle
+var wheelBackground = [ 'rgb(255, 0, 0)',
+                        'rgb(255, 127, 0)',
+                        'rgb(255, 255, 0)',
+                        'rgb(127, 255, 0)',
+                        'rgb(0, 255, 0)',
+                        'rgb(0, 255, 127)',
+                        'rgb(0, 255, 255)',                                 
+                        'rgb(0, 127, 255)',
+                        'rgb(0, 0, 255)',                                   
+                        'rgb(127, 0, 255)',
+                        'rgb(255, 0, 255)', 
+                        'rgb(255, 0, 127)'
+                      ]; // HSL Circle*/
+const wheelBackground = [ "#FF0000",
+                          "#FF7F00",
+                          "#FFFF00",
+                          "#7FFF00",
+                          "#00FF00",
+                          "#00FF7F",
+                          "#00FFFF",
+                          "#007FFF",
+                          "#0000FF",
+                          "#7F00FF",
+                          "#FF00FF",
+                          "#FF007F"
+                        ]; // HSL Circle, hex format
 var ctx = document.getElementById('colorWheel').getContext('2d');
 var chart = new Chart(ctx, {
   
@@ -126,32 +167,7 @@ var chart = new Chart(ctx, {
     labels: note_names, 
     datasets: [
       {
-        /*backgroundColor: [ 'rgb(255, 255, 0)',
-                           'rgb(255, 132, 0)',
-                           'rgb(255, 0, 0)',
-                           'rgb(247, 0, 64)',
-                           'rgb(239, 2, 126)',
-                           'rgb(131, 1, 126)',
-                           'rgb(19, 0, 123)',                                 
-                           'rgb(10, 82, 165)',
-                           'rgb(0, 159, 197)',                                   
-                           'rgb(0, 147, 126)',
-                           'rgb(0, 140, 57)', 
-                           'rgb(130, 198, 28)'
-                          ], // RGB Circle*/
-        backgroundColor: [ 'rgb(255, 0, 0)',
-                           'rgb(255, 127, 0)',
-                           'rgb(255, 255, 0)',
-                           'rgb(127, 255, 0)',
-                           'rgb(0, 255, 0)',
-                           'rgb(0, 255, 127)',
-                           'rgb(0, 255, 255)',                                 
-                           'rgb(0, 127, 255)',
-                           'rgb(0, 0, 255)',                                   
-                           'rgb(127, 0, 255)',
-                           'rgb(255, 0, 255)', 
-                           'rgb(255, 0, 127)'
-                          ], // HSL Circle
+        backgroundColor: wheelBackground, 
         borderWidth: 3,
         // borderColor: 'rgb(0, 0, 0)',
         data: [1,1,1,1,1,1,1,1,1,1,1,1],
@@ -180,7 +196,7 @@ var chart = new Chart(ctx, {
 
 }); 
 
-// Colors in the Color Wheel:
+// Colors in the Color Wheel as an array of RGB triplets:
 // rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
 var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // The 12 hues of our circle, filled in the next step
@@ -329,12 +345,26 @@ function readURL(input) {
           return b[1]-a[1]
         });
 
-        //rot determines the rotation of the array to be confronted depending on the most prominent value
+        // rot determines the rotation of the array to be confronted depending on the most prominent value
         rot = hues.indexOf(hue_hist[0][0]);
   
-        //hues_r is the hue array w/ the most present hue at the first place
+        // hues_r is the hue array w/ the most present hue at the first place
         hues_r = arrayRotate(hues, rot);
-        arrayRotate(chart.data.datasets[0].backgroundColor, rot);
+        // Restore wheel to initial position before rotating, we cannot use wheelBackground since it gets modified by pSBC
+        chart.data.datasets[0].backgroundColor = [ "#FF0000", 
+                                                   "#FF7F00",
+                                                   "#FFFF00",
+                                                   "#7FFF00",
+                                                   "#00FF00",
+                                                   "#00FF7F",
+                                                   "#00FFFF",
+                                                   "#007FFF",
+                                                   "#0000FF",
+                                                   "#7F00FF",
+                                                   "#FF00FF",
+                                                   "#FF007F"
+                                                 ]; 
+        arrayRotate(chart.data.datasets[0].backgroundColor, rot); // Rotate color wheel bringing most present color at the top
         chart.update();
         /* 
         * Here's how we decide what's the most similar mode: for each element in common between the
@@ -342,7 +372,7 @@ function readURL(input) {
         * proportional to the occurrence of that element (color/note).
         * The mode with the highest score is the chosen one.
         */
-        resulting_scale = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        resulting_scale = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
         for (i=0; i<hue_hist.length; i++) { // Put the number of occurrences in place of the present notes/colors
           resulting_scale[hues_r.indexOf(hue_hist[i][0])] = hue_hist[i][1] //alternatively: 12 - hue_hist.indexOf(hue_hist[i]);      
         }
@@ -366,7 +396,7 @@ function readURL(input) {
 	  
       img.src = e.target.result;
 
-      // Eyedropper functionalities:
+      // "Eyedropper" functionalities:
       var silent = true; // No sound is playing
       var lastStart = 0; // Last time a chord was played
       $("#myimage").click(function (e) {
@@ -398,20 +428,19 @@ function readURL(input) {
             if (resulting_mode[index] == 0) index--; // Handle colors that are not present in the resulting mode by choosing the previous note
             // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
             var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
-            var int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
+            int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
             var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
-            var int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
+            int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
             var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
-            var int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
+            int3 = nextInterval(resulting_mode, (index + skip3)) + skip3; // third interval of the chord
             var root = index + selected_tonic;
             osc0.frequency.value = (220*Math.pow(2, root/12))/2; // Bass note
             osc1.frequency.value = 220*Math.pow(2, root/12); // Root note
             osc2.frequency.value = 220*Math.pow(2, (root + int1)/12); // 3rd
             osc3.frequency.value = 220*Math.pow(2, (root + int2)/12); // 5th
             osc4.frequency.value = 220*Math.pow(2, (root + int3)/12); // 7th
-            var noise_gain = rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[2];
-            console.log(noise_gain);
-            gn.gain.setValueAtTime(noise_gain * 0.07, audioCtx.currentTime);
+            //var noise_gain = rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[2];
+            //gn.gain.setValueAtTime(noise_gain * 0.07, audioCtx.currentTime);
             if (silent) { // Increase volume "slowly" when there's no previous sound playing
               g.gain.setValueAtTime(0, audioCtx.currentTime);
               g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
@@ -432,31 +461,78 @@ function readURL(input) {
               chord = triad;
             }
 
-            // chart.options.elements.center.text = current_note_name.concat(triad);
+            // Higlight the colors that ar currently playing on the wheel, show the chord name at the center
+            chart.data.datasets[0].backgroundColor = [ "#FF0000",
+                                                       "#FF7F00",
+                                                       "#FFFF00",
+                                                       "#7FFF00",
+                                                       "#00FF00",
+                                                       "#00FF7F",
+                                                       "#00FFFF",
+                                                       "#007FFF",
+                                                       "#0000FF",
+                                                       "#7F00FF",
+                                                       "#FF00FF",
+                                                       "#FF007F"
+                                                     ];
+            arrayRotate(chart.data.datasets[0].backgroundColor, rot);
+            chart.data.datasets[0].backgroundColor[index%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index)%12]);
+            chart.data.datasets[0].backgroundColor[(index + int1)%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index + int1)%12]);
+            chart.data.datasets[0].backgroundColor[(index + int2)%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index + int2)%12]);
+            if (quadriad) 
+              chart.data.datasets[0].backgroundColor[(index + int3)%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index + int3)%12]);
             chart.options.elements.center.text = note_names[index] + chord + " (" + degree_name + ")";
             chart.update();
             lastStart = audioCtx.currentTime;
           }
-
-          else { // Turn the sound off when clicking greys
+          // Turn the sound off when clicking greys, restore the color wheel
+          else { s
             if (!silent) {
               g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
               g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
               silent = true;
+              chart.data.datasets[0].backgroundColor = [ "#FF0000",
+                                                         "#FF7F00",
+                                                         "#FFFF00",
+                                                         "#7FFF00",
+                                                         "#00FF00",
+                                                         "#00FF7F",
+                                                         "#00FFFF",
+                                                         "#007FFF",
+                                                         "#0000FF",
+                                                         "#7F00FF",
+                                                         "#FF00FF",
+                                                         "#FF007F"
+                                                       ];
+              arrayRotate(chart.data.datasets[0].backgroundColor, rot);
               chart.options.elements.center.text = "";
               chart.update();
             }
           }
         }
       });
-
-      $('#myimage').mouseleave(function(e) {
+      // Turn the sound off when leaving the image, restore the color wheel
+      $('#myimage').mouseleave(function(e) { 
         if (!silent) {
-          g.gain.setValueAtTime(1, audioCtx.currentTime);
-          if (quadriad) g7.gain.setValueAtTime(1, audioCtx.currentTime);
+          g.gain.setValueAtTime(singleGain, audioCtx.currentTime);
+          if (quadriad) g7.gain.setValueAtTime(singleGain, audioCtx.currentTime);
           g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
           g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
           silent = true;
+          chart.data.datasets[0].backgroundColor = [ "#FF0000",
+                                                     "#FF7F00",
+                                                     "#FFFF00",
+                                                     "#7FFF00",
+                                                     "#00FF00",
+                                                     "#00FF7F",
+                                                     "#00FFFF",
+                                                     "#007FFF",
+                                                     "#0000FF",
+                                                     "#7F00FF",
+                                                     "#FF00FF",
+                                                     "#FF007F"
+                                                   ];
+          arrayRotate(chart.data.datasets[0].backgroundColor, rot);
           chart.options.elements.center.text = "";
           chart.update();
           $(".change-image").css("backgroundColor", "rgb(0,0,0)");
@@ -988,4 +1064,34 @@ function base64ToArrayBuffer(base64) {
       bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer;
+}
+
+/*
+* Shade, Blend and Convert a Web Color.
+* Taken from https://github.com/PimpTrizkit/PJs/wiki/12.-Shade,-Blend-and-Convert-a-Web-Color-(pSBC.js)#stackoverflow-archive-begin
+*/
+// Version 4.0
+const pSBC=(p,c0,c1,l)=>{
+	let r,g,b,P,f,t,h,i=parseInt,m=Math.round,a=typeof(c1)=="string";
+	if(typeof(p)!="number"||p<-1||p>1||typeof(c0)!="string"||(c0[0]!='r'&&c0[0]!='#')||(c1&&!a))return null;
+	if(!this.pSBCr)this.pSBCr=(d)=>{
+		let n=d.length,x={};
+		if(n>9){
+			[r,g,b,a]=d=d.split(","),n=d.length;
+			if(n<3||n>4)return null;
+			x.r=i(r[3]=="a"?r.slice(5):r.slice(4)),x.g=i(g),x.b=i(b),x.a=a?parseFloat(a):-1
+		}else{
+			if(n==8||n==6||n<4)return null;
+			if(n<6)d="#"+d[1]+d[1]+d[2]+d[2]+d[3]+d[3]+(n>4?d[4]+d[4]:"");
+			d=i(d.slice(1),16);
+			if(n==9||n==5)x.r=d>>24&255,x.g=d>>16&255,x.b=d>>8&255,x.a=m((d&255)/0.255)/1000;
+			else x.r=d>>16,x.g=d>>8&255,x.b=d&255,x.a=-1
+		}return x};
+	h=c0.length>9,h=a?c1.length>9?true:c1=="c"?!h:false:h,f=this.pSBCr(c0),P=p<0,t=c1&&c1!="c"?this.pSBCr(c1):P?{r:0,g:0,b:0,a:-1}:{r:255,g:255,b:255,a:-1},p=P?p*-1:p,P=1-p;
+	if(!f||!t)return null;
+	if(l)r=m(P*f.r+p*t.r),g=m(P*f.g+p*t.g),b=m(P*f.b+p*t.b);
+	else r=m((P*f.r**2+p*t.r**2)**0.5),g=m((P*f.g**2+p*t.g**2)**0.5),b=m((P*f.b**2+p*t.b**2)**0.5);
+	a=f.a,t=t.a,f=a>=0||t>=0,a=f?a<0?t:t<0?a:a*P+t*p:0;
+	if(h)return"rgb"+(f?"a(":"(")+r+","+g+","+b+(f?","+m(a*1000)/1000:"")+")";
+	else return"#"+(4294967296+r*16777216+g*65536+b*256+(f?m(a*255):0)).toString(16).slice(1,f?undefined:-2)
 }
