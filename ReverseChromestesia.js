@@ -679,6 +679,19 @@ function nextInterval(mode, note) {
   return i;
 }
 
+/*************************************************
+* Converts base64 encoded string to a binary array
+*************************************************/
+function base64ToArrayBuffer(base64) {
+  var binaryString = window.atob(base64);
+  var len = binaryString.length;
+  var bytes = new Uint8Array(len);
+  for (var i = 0; i < len; i++)        {
+      bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 /*******************************************************
 * TRIADS: select the chord depending on the mode and the 
 * position of the note in the scale
@@ -965,133 +978,4 @@ function degreeName(degree, triad) {
   if (triad == "maj") degree_name = degree_name.toUpperCase();
   if (triad == "dim") degree_name = degree_name + String.fromCharCode(176);
   return degree_name;
-}
-
-/********************************************************
-* Modification to Chart.js in order to obtain text at the 
-* center of donut chart:
-********************************************************/
-Chart.pluginService.register({
-  beforeDraw: function(chart) {
-    if (chart.config.options.elements.center) {
-      // Get ctx from string
-      var ctx = chart.chart.ctx;
-
-      // Get options from the center object in options
-      var centerConfig = chart.config.options.elements.center;
-      var fontStyle = centerConfig.fontStyle || 'Arial';
-      var txt = centerConfig.text;
-      var color = centerConfig.color || '#000';
-      var maxFontSize = centerConfig.maxFontSize || 75;
-      var sidePadding = centerConfig.sidePadding || 20;
-      var sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2)
-      // Start with a base font of 30px
-      ctx.font = "30px " + fontStyle;
-
-      // Get the width of the string and also the width of the element minus 10 to give it 5px side padding
-      var stringWidth = ctx.measureText(txt).width;
-      var elementWidth = (chart.innerRadius * 2) - sidePaddingCalculated;
-
-      // Find out how much the font can grow in width.
-      var widthRatio = elementWidth / stringWidth;
-      var newFontSize = Math.floor(30 * widthRatio);
-      var elementHeight = (chart.innerRadius * 2);
-
-      // Pick a new font size so it will not be larger than the height of label.
-      var fontSizeToUse = Math.min(newFontSize, elementHeight, maxFontSize);
-      var minFontSize = centerConfig.minFontSize;
-      var lineHeight = centerConfig.lineHeight || 25;
-      var wrapText = false;
-
-      if (minFontSize === undefined) {
-        minFontSize = 20;
-      }
-
-      if (minFontSize && fontSizeToUse < minFontSize) {
-        fontSizeToUse = minFontSize;
-        wrapText = true;
-      }
-
-      // Set font settings to draw it correctly.
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      var centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
-      var centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-      ctx.font = fontSizeToUse + "px " + fontStyle;
-      ctx.fillStyle = color;
-
-      if (!wrapText) {
-        ctx.fillText(txt, centerX, centerY);
-        return;
-      }
-
-      var words = txt.split(' ');
-      var line = '';
-      var lines = [];
-
-      // Break words up into multiple lines if necessary
-      for (var n = 0; n < words.length; n++) {
-        var testLine = line + words[n] + ' ';
-        var metrics = ctx.measureText(testLine);
-        var testWidth = metrics.width;
-        if (testWidth > elementWidth && n > 0) {
-          lines.push(line);
-          line = words[n] + ' ';
-        } else {
-          line = testLine;
-        }
-      }
-
-      // Move the center up depending on line height and number of lines
-      centerY -= (lines.length / 2) * lineHeight;
-
-      for (var n = 0; n < lines.length; n++) {
-        ctx.fillText(lines[n], centerX, centerY);
-        centerY += lineHeight;
-      }
-      //Draw text in center
-      ctx.fillText(line, centerX, centerY);
-    }
-  }
-});
-
-// Converts base64 encoded string to a binary array
-function base64ToArrayBuffer(base64) {
-  var binaryString = window.atob(base64);
-  var len = binaryString.length;
-  var bytes = new Uint8Array(len);
-  for (var i = 0; i < len; i++)        {
-      bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
-/*
-* Shade, Blend and Convert a Web Color.
-* Taken from https://github.com/PimpTrizkit/PJs/wiki/12.-Shade,-Blend-and-Convert-a-Web-Color-(pSBC.js)#stackoverflow-archive-begin
-*/
-// Version 4.0
-const pSBC=(p,c0,c1,l)=>{
-	let r,g,b,P,f,t,h,i=parseInt,m=Math.round,a=typeof(c1)=="string";
-	if(typeof(p)!="number"||p<-1||p>1||typeof(c0)!="string"||(c0[0]!='r'&&c0[0]!='#')||(c1&&!a))return null;
-	if(!this.pSBCr)this.pSBCr=(d)=>{
-		let n=d.length,x={};
-		if(n>9){
-			[r,g,b,a]=d=d.split(","),n=d.length;
-			if(n<3||n>4)return null;
-			x.r=i(r[3]=="a"?r.slice(5):r.slice(4)),x.g=i(g),x.b=i(b),x.a=a?parseFloat(a):-1
-		}else{
-			if(n==8||n==6||n<4)return null;
-			if(n<6)d="#"+d[1]+d[1]+d[2]+d[2]+d[3]+d[3]+(n>4?d[4]+d[4]:"");
-			d=i(d.slice(1),16);
-			if(n==9||n==5)x.r=d>>24&255,x.g=d>>16&255,x.b=d>>8&255,x.a=m((d&255)/0.255)/1000;
-			else x.r=d>>16,x.g=d>>8&255,x.b=d&255,x.a=-1
-		}return x};
-	h=c0.length>9,h=a?c1.length>9?true:c1=="c"?!h:false:h,f=this.pSBCr(c0),P=p<0,t=c1&&c1!="c"?this.pSBCr(c1):P?{r:0,g:0,b:0,a:-1}:{r:255,g:255,b:255,a:-1},p=P?p*-1:p,P=1-p;
-	if(!f||!t)return null;
-	if(l)r=m(P*f.r+p*t.r),g=m(P*f.g+p*t.g),b=m(P*f.b+p*t.b);
-	else r=m((P*f.r**2+p*t.r**2)**0.5),g=m((P*f.g**2+p*t.g**2)**0.5),b=m((P*f.b**2+p*t.b**2)**0.5);
-	a=f.a,t=t.a,f=a>=0||t>=0,a=f?a<0?t:t<0?a:a*P+t*p:0;
-	if(h)return"rgb"+(f?"a(":"(")+r+","+g+","+b+(f?","+m(a*1000)/1000:"")+")";
-	else return"#"+(4294967296+r*16777216+g*65536+b*256+(f?m(a*255):0)).toString(16).slice(1,f?undefined:-2)
 }
