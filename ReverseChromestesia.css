@@ -1,5 +1,5 @@
 .title {
-  padding-top: 20px;
+    padding-top: 20px;
     position: relative;
     text-align: center;
     font-size: 50px;
@@ -39,7 +39,8 @@
 }
 
 #global-wrapper {
-  padding-top: 50px;
+  width: 1200px;
+  padding-top: 100px;
   margin: 0 auto;
   text-align: center;
 }
@@ -250,6 +251,7 @@ input:checked + .slider:before {
     text-shadow: 2px 2px 4px #000000;
     text-align: center;
     width: 140px;
+    text-align-last:center;
     height: 34px;
     /*margin-left: 50%;
     transform: translateX(-50%);*/

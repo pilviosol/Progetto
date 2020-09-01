@@ -1,3 +1,4 @@
+alert("For the best user experience, we recommend using Firefox.");
 // Create web audio API context:
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 // create Oscillators, Filter and Gain nodes:
@@ -189,7 +190,7 @@ var chart = new Chart(ctx, {
 // Colors in the Color Wheel as an array of RGB triplets:
 // rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
-var hues = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]; // The 12 hues of our circle, filled in the next step
+var hues = [0, 21, 43, 64, 85, 106, 128, 149, 170, 191, 213, 234]; // The 12 hues of our circle 
 var palette = []; // Built in the next step
 
 /*
@@ -201,8 +202,8 @@ var palette = []; // Built in the next step
 */
 for(i=0; i<12; i++) {
   var currentColor = hslCircle[i];
-  var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0]; // Extract hue
-  hues[i] = Math.round(255 * hue); // Fill hues array
+  // Extract hue (yes, we already have them but we want to avoid errors during the conversion in values from 0 to 1)
+  var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0]; 
   for(j=1; j<6; j++) { // saturation values
     for(k=1; k<5; k++) { // luminance values
       palette.push(hslToRgb(hue, (2*j)/10, (2*k)/10));
@@ -212,7 +213,6 @@ for(i=0; i<12; i++) {
 for(h=0; h<6; h++) { // greys
   palette.push([51*h, 51*h, 51*h]);
 }
-
 // Image data and quantization data
 var canvas;
 var context;
@@ -343,19 +343,6 @@ function readURL(input) {
         // hues_r is the hue array w/ the most present hue at the first place
         hues_r = arrayRotate(hues, rot);
         // Restore wheel to initial position before rotating, we cannot use wheelBackground since it gets modified by pSBC
-        chart.data.datasets[0].backgroundColor = [ "#FF0000", 
-                                                   "#FF7F00",
-                                                   "#FFFF00",
-                                                   "#7FFF00",
-                                                   "#00FF00",
-                                                   "#00FF7F",
-                                                   "#00FFFF",
-                                                   "#007FFF",
-                                                   "#0000FF",
-                                                   "#7F00FF",
-                                                   "#FF00FF",
-                                                   "#FF007F"
-                                                 ]; 
         arrayRotate(chart.data.datasets[0].backgroundColor, rot); // Rotate color wheel bringing most present color at the top
         chart.update();
         /* 
@@ -482,7 +469,7 @@ function readURL(input) {
               g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
               g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
               silent = true;
-              chart.data.datasets[0].backgroundColor = [ "#FF0000",
+              chart.data.datasets[0].backgroundColor = [ "#FF0000", // Remove chord highlights
                                                          "#FF7F00",
                                                          "#FFFF00",
                                                          "#7FFF00",
@@ -510,7 +497,7 @@ function readURL(input) {
           g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
           g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
           silent = true;
-          chart.data.datasets[0].backgroundColor = [ "#FF0000",
+          chart.data.datasets[0].backgroundColor = [ "#FF0000", 
                                                      "#FF7F00",
                                                      "#FFFF00",
                                                      "#7FFF00",
@@ -558,6 +545,21 @@ function removeUpload() {
   hue_hist = []; 
   resulting_mode = [];
   mode_intervals = [];
+  hues = [0, 21, 43, 64, 85, 106, 128, 149, 170, 191, 213, 234];
+  chart.data.datasets[0].backgroundColor = [ "#FF0000", // Restore color wheel rotation
+                                             "#FF7F00",
+                                             "#FFFF00",
+                                             "#7FFF00",
+                                             "#00FF00",
+                                             "#00FF7F",
+                                             "#00FFFF",
+                                             "#007FFF",
+                                             "#0000FF",
+                                             "#7F00FF",
+                                             "#FF00FF",
+                                             "#FF007F"
+                                            ]; 
+  chart.update(); 
 }
 
 $('.image-upload-wrap').bind('dragover', function () {
