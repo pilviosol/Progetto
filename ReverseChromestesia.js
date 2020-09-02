@@ -1,4 +1,4 @@
-alert("For the best user experience, we recommend using Firefox.");
+alert("Different browsers may quantize images in different ways.");
 // Create web audio API context:
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 // create Oscillators, Filter and Gain nodes:
@@ -45,7 +45,6 @@ gr.gain.value = singleGain;
 g3.gain.value = singleGain;
 g5.gain.value = singleGain;
 g7.gain.value = 0; // Gain for the 7th
-//gn.gain.value = 0 // Gain for the noise osc
 g.gain.value = 0; // Gain for the triad + bass
 osc0.connect(gbass);
 osc1.connect(gr);
@@ -58,12 +57,9 @@ g3.connect(f);
 g5.connect(f);
 g7.connect(f);
 f.connect(g);
-//whiteNoise.connect(gn);
-//gn.connect(g);
 g.connect(reverbNode);
 reverbNode.connect(audioCtx.destination);
 //Starting sources:
-//whiteNoise.start(0);
 osc0.start();
 osc1.start();
 osc2.start();
@@ -71,7 +67,7 @@ osc3.start();
 osc4.start();
 
 // Musical variables
-$('#select-tonic').prop('selectedIndex', 0); // Restore tonic selector to default value
+$('#select-tonic').prop('selectedIndex', 0); // Restore tonic selector to default value when page is reloaded
 var note_names = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"];
 var selected_tonic = 0;
 $('#select-tonic').on('change', function() { // Rotate note names array accordingly to the selected tonic: default is A
@@ -110,33 +106,7 @@ $("#quadriad-switch-input").on('change', function() {
 });
 
 // Color Wheel:
-/*var wheelBackground = [ 'rgb(255, 255, 0)',
-                          'rgb(255, 132, 0)',
-                          'rgb(255, 0, 0)',
-                          'rgb(247, 0, 64)',
-                          'rgb(239, 2, 126)',
-                          'rgb(131, 1, 126)',
-                          'rgb(19, 0, 123)',
-                          'rgb(10, 82, 165)',
-                          'rgb(0, 159, 197)',
-                          'rgb(0, 147, 126)',
-                          'rgb(0, 140, 57)', 
-                          'rgb(130, 198, 28)'
-                        ]; // RGB Circle
-var wheelBackground = [ 'rgb(255, 0, 0)',
-                        'rgb(255, 127, 0)',
-                        'rgb(255, 255, 0)',
-                        'rgb(127, 255, 0)',
-                        'rgb(0, 255, 0)',
-                        'rgb(0, 255, 127)',
-                        'rgb(0, 255, 255)',                                 
-                        'rgb(0, 127, 255)',
-                        'rgb(0, 0, 255)',                                   
-                        'rgb(127, 0, 255)',
-                        'rgb(255, 0, 255)', 
-                        'rgb(255, 0, 127)'
-                      ]; // HSL Circle*/
-const wheelBackground = [ "#FF0000",
+var wheelBackground = [ "#FF0000",
                           "#FF7F00",
                           "#FFFF00",
                           "#7FFF00",
@@ -188,21 +158,20 @@ var chart = new Chart(ctx, {
 }); 
 
 // Colors in the Color Wheel as an array of RGB triplets:
-// rgbCircle = [[255, 255, 0], [255, 132, 0], [255, 0, 0], [247, 0, 64], [239, 2, 126], [131, 1, 126], [19, 0, 123], [10, 82, 165], [0, 159, 197], [0, 147, 126], [0, 140, 57], [130, 198, 28]];
 hslCircle = [[255, 0, 0], [255, 127, 0], [255, 255, 0], [127, 255, 0], [0, 255, 0], [0, 255, 127], [0, 255, 255], [0, 127, 255], [0, 0, 255], [127, 0, 255], [255, 0, 255], [255, 0, 127]];
 var hues = [0, 21, 43, 64, 85, 106, 128, 149, 170, 191, 213, 234]; // The 12 hues of our circle 
 var palette = []; // Built in the next step
-
 /*
 * Generate a color palette containing the colors in the color circle AND THEIR SHADES 
 * (different luminance and saturation values), plus some greys (for aesthetical purposes).
 * We cannot use the color wheel as it is because less saturated colors or colors w/ high 
 * or low luminance would be mapped in greys causing loss of information about hues.
-* Total number of colors: 246.
+* Total number of hues: 12; Total number of colors: 246.
 */
 for(i=0; i<12; i++) {
   var currentColor = hslCircle[i];
-  // Extract hue (yes, we already have them but we want to avoid errors during the conversion in values from 0 to 1)
+  // Extract hue (yes, we already have them but we want to avoid errors during the conversion in values from 0-255 to 0-1)
+  // The quantizer requires a palette in the rgb format
   var hue = rgbToHsl(currentColor[0], currentColor[1], currentColor[2])[0]; 
   for(j=1; j<6; j++) { // saturation values
     for(k=1; k<5; k++) { // luminance values
@@ -213,6 +182,7 @@ for(i=0; i<12; i++) {
 for(h=0; h<6; h++) { // greys
   palette.push([51*h, 51*h, 51*h]);
 }
+
 // Image data and quantization data
 var canvas;
 var context;
@@ -283,7 +253,6 @@ function readURL(input) {
         var uint8clamped = new Uint8ClampedArray(outA.buffer);
         var DAT = new ImageData(uint8clamped, width, height);
         context.putImageData(DAT, 0, 0);
-
         /* 
         * Obtain color list from quantized image. 
         * tuples if true will return an array of [r,g,b] triplets, otherwise a Uint8Array is returned by default. 
@@ -294,18 +263,11 @@ function readURL(input) {
         resulting_palette = q.palette(tuples, noSort); 
         var q1 = new RgbQuant(opts);
         q1.sample(DAT);
-        var resulting_freqs = q1.histFrequencies();
-
-        // Hue histogram w/ duplicates (no greys), useful for debugging:
-        /*var hue_hist_dup = [];
-        for (i = 0; i<resulting_palette.length; i++) {
-          if (!(resulting_palette[i][0] == resulting_palette[i][1] && resulting_palette[i][1] == resulting_palette[i][2])) {
-            hue_hist_dup.push([Math.round(255 * rgbToHsl(resulting_palette[i][0], resulting_palette[i][1], resulting_palette[i][2])[0]), resulting_freqs[i]]);
-          }
-        }
-        console.log("hue hist w/ duplicates:");
-        console.log(hue_hist_dup);*/
-
+        /*
+        * This is a custom function we added to the library in order to extract the color histogram
+        * from which we can obtain a hue histogram
+        */
+        var resulting_freqs = q1.histFrequencies(); 
         // Extract Hue histogram from quantized image
         var i = 0;
         while (i<resulting_palette.length) {
@@ -336,10 +298,8 @@ function readURL(input) {
         hue_hist.sort(function(a,b) { // sort the hue histogram by occurrences (descending order)
           return b[1]-a[1]
         });
-
         // rot determines the rotation of the array to be confronted depending on the most prominent value
         rot = hues.indexOf(hue_hist[0][0]);
-  
         // hues_r is the hue array w/ the most present hue at the first place
         hues_r = arrayRotate(hues, rot);
         // Restore wheel to initial position before rotating, we cannot use wheelBackground since it gets modified by pSBC
@@ -375,7 +335,7 @@ function readURL(input) {
 	  
       img.src = e.target.result;
 
-      // "Eyedropper" functionalities:
+      // "Eyedropper" functionalities (play the right chord after clicking a color):
       var silent = true; // No sound is playing
       var lastStart = 0; // Last time a chord was played
       $("#myimage").click(function (e) {
@@ -386,14 +346,14 @@ function readURL(input) {
         var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
         var grey = false;
 
-        if (eyeDropperColor[0] == eyeDropperColor[1] && eyeDropperColor[0] == eyeDropperColor[2]) {
+        if (eyeDropperColor[0] == eyeDropperColor[1] && eyeDropperColor[0] == eyeDropperColor[2]) { // Check if the color has a hue (is not grey)
           grey = true;
         }
 
-        if (audioCtx.currentTime - lastStart > 0.6) { // Limit the speed of chord changes to avoid conflicts with envelopes
-          if (!grey) {
-
-            var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); // Extract hue of current color
+        if (audioCtx.currentTime - lastStart > 0.6) { // Limit the speed of chord changes to avoid conflicts between volume fades
+          if (!grey) { // If the color has a distinguishable hue...
+            // ... Extract hue of clicked color:
+            var playingColor = Math.round(255 * rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[0]); 
             var colorup = playingColor;
             var colordown = colorup;
             while (hues_r.indexOf(playingColor) == -1) { // Deal with incorrect roundings when calculating playingColor
@@ -404,9 +364,9 @@ function readURL(input) {
             }
             index = hues_r.indexOf(playingColor); // Distance in semitones from the tonic
             if (resulting_mode[index] == 0) index--; // Handle colors that are not present in the resulting mode by choosing the previous note
-            // Determine the intervals of the chord notes. PROBLEM: some colors of the image do not correspond to any note in the resulting mode.
+            // Determine the intervals of the chord notes (2:1 subsampling of the scale)
             var skip1 = nextInterval(resulting_mode, index); // skip the next note in the scale
-            int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord
+            int1 = nextInterval(resulting_mode, index + skip1) + skip1; // first interval of the chord (from the root)
             var skip2 = nextInterval(resulting_mode, (index + int1)) + int1;
             int2 = nextInterval(resulting_mode, (index + skip2)) + skip2; // second interval of the chord
             var skip3 = nextInterval(resulting_mode, (index + int2)) + int2; 
@@ -417,28 +377,27 @@ function readURL(input) {
             osc2.frequency.value = 220*Math.pow(2, (root + int1)/12); // 3rd
             osc3.frequency.value = 220*Math.pow(2, (root + int2)/12); // 5th
             osc4.frequency.value = 220*Math.pow(2, (root + int3)/12); // 7th
-            //var noise_gain = rgbToHsl(eyeDropperColor[0], eyeDropperColor[1], eyeDropperColor[2])[2];
-            //gn.gain.setValueAtTime(noise_gain * 0.07, audioCtx.currentTime);
-            if (silent) { // Increase volume "slowly" when there's no previous sound playing
+            if (silent) { // If no sound is playing...
+              // ... Increase volume gradually in 0.5s:
               g.gain.setValueAtTime(0, audioCtx.currentTime);
               g.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.5);
-              if (quadriad) {
+              if (quadriad) { // If the "quadriad" option is checked...
+                // ... activate the 4th note of the chord
                 g7.gain.setValueAtTime(0, audioCtx.currentTime);
                 g7.gain.linearRampToValueAtTime(singleGain, audioCtx.currentTime + 0.5);
               }
               silent = false;
             }
-            
+            // Determine the chord name to be showed at the center of the wheel:
             triad = selectTriad(resulting_mode, index); 
             degree = mode_intervals.indexOf(index); // Degree of the root note of the chord
-            degree_name = degreeName(degree, triad);
+            degree_name = degreeName(degree, triad); // Convert to roman numeral for display
             if (quadriad) { 
               chord = selectQuadriad(resulting_mode,index);
             }
             else {
               chord = triad;
             }
-
             // Higlight the colors that ar currently playing on the wheel, show the chord name at the center
             chart.data.datasets[0].backgroundColor = [ "#FF0000",
                                                        "#FF7F00",
@@ -454,6 +413,7 @@ function readURL(input) {
                                                        "#FF007F"
                                                      ];
             arrayRotate(chart.data.datasets[0].backgroundColor, rot);
+            // Darken the playing colors with the pSBC function of 90%:
             chart.data.datasets[0].backgroundColor[index%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index)%12]);
             chart.data.datasets[0].backgroundColor[(index + int1)%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index + int1)%12]);
             chart.data.datasets[0].backgroundColor[(index + int2)%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index + int2)%12]);
@@ -463,8 +423,8 @@ function readURL(input) {
             chart.update();
             lastStart = audioCtx.currentTime;
           }
-          // Turn the sound off when clicking greys, restore the color wheel
-          else { s
+          
+          else {// If the clicked color is grey, turn the sound off and stop highingting colors on the wheel
             if (!silent) {
               g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
               g7.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
@@ -489,7 +449,7 @@ function readURL(input) {
           }
         }
       });
-      // Turn the sound off when leaving the image, restore the color wheel
+      // When the cursor leaves the image, turn the sound off and stop highingting colors on the wheel
       $('#myimage').mouseleave(function(e) { 
         if (!silent) {
           g.gain.setValueAtTime(singleGain, audioCtx.currentTime);
@@ -519,10 +479,18 @@ function readURL(input) {
     reader.readAsDataURL(file);
   } 
   
-  else {
-    removeUpload();
+  else { // Remove image and reset data when the "Change image" button is clicked
+    removeUpload(); 
   }
 }
+
+// Change background of the image-loader on dragover/dragleave events
+$('.image-upload-wrap').bind('dragover', function () {
+  $('.image-upload-wrap').addClass('image-dropping');
+});
+$('.image-upload-wrap').bind('dragleave', function () {
+  $('.image-upload-wrap').removeClass('image-dropping');
+});
 
 /*-----------------------------------------------------------
  FUNCTIONS:
@@ -561,13 +529,6 @@ function removeUpload() {
                                             ]; 
   chart.update(); 
 }
-
-$('.image-upload-wrap').bind('dragover', function () {
-		$('.image-upload-wrap').addClass('image-dropping');
-	});
-	$('.image-upload-wrap').bind('dragleave', function () {
-		$('.image-upload-wrap').removeClass('image-dropping');
-});
 
 /***********************************************************
  * Converts an RGB color value to HSL. Conversion formula

@@ -1,8 +1,8 @@
-/*
+/**********************************************************************************************************************************
 * Shade, Blend and Convert a Web Color.
 * Taken from https://github.com/PimpTrizkit/PJs/wiki/12.-Shade,-Blend-and-Convert-a-Web-Color-(pSBC.js)#stackoverflow-archive-begin
 * Info and instructions are found at the previous link.
-*/
+**********************************************************************************************************************************/
 // Version 4.0
 const pSBC=(p,c0,c1,l)=>{
 	let r,g,b,P,f,t,h,i=parseInt,m=Math.round,a=typeof(c1)=="string";

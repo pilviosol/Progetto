@@ -39,20 +39,23 @@
 }
 
 #global-wrapper {
-  width: 1200px;
+  /*width: 1200px;*/
   padding-top: 100px;
   margin: 0 auto;
   text-align: center;
 }
 
-.left-wrap {
+#left-wrap {
   display: inline-block;
   vertical-align: top;
+  padding-right: 25px;
 }
 
-.right-wrap {
+#right-wrap {
   display: inline-block;
   height: 100%;
+  padding-left: 25px;
+  transform: translateX(50px);
 }
 
 .color-wheel-wrap {
@@ -115,6 +118,7 @@
   border: 3px dashed white;
   border-radius: 5px;
   position: relative;
+  width: 400px;
 }
 
 .image-dropping,

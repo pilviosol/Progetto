@@ -3,11 +3,12 @@
 * All rights reserved. (MIT Licensed)
 *
 * RgbQuant.js - an image quantization lib
-*
-* IMPORTANT NOTE: Two functions in this file (line 937 and 951) were added by 
-* Giulio Zanetti and Silvio Pol in order to better exploit the library
-* for the Reverse Chromestesia project. Line 27 was modified as well.
 */
+/*---------------------------------------------------------------------------
+* IMPORTANT NOTE: Two functions in this file (line 938 and 952) were added by 
+* us (Giulio Zanetti and Silvio Pol) in order to better exploit the library
+* for the Reverse Chromestesia project. Line 27 was modified as well.
+---------------------------------------------------------------------------*/
 
 (function(){
 	function RgbQuant(opts) {
