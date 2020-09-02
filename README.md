@@ -1,6 +1,6 @@
 # ACTaM and CM-RM project
-## REVERSE CHROMESTESIA
-Let's first define what **chromestesia** is: chromesthesia (or sound-to-color synesthesia) is a type of synesthesia in which sound involuntarily evokes an experience of color, shape, and movement in someone's mind. For some people, everyday sounds such as doors opening, cars honking, or people talking can trigger seeing colors. For others, colors are triggered when musical notes or keys are being pulayed. Colors triggered by certain sounds, as well as other synesthetic visual experiences, are referred to as *photisms*.
+## REVERSE CHROMESTHESIA
+Let's first define what **chromesthesia** is: chromesthesia (or sound-to-color synesthesia) is a type of synesthesia in which sound involuntarily evokes an experience of color, shape, and movement in someone's mind. For some people, everyday sounds such as doors opening, cars honking, or people talking can trigger seeing colors. For others, colors are triggered when musical notes or keys are being pulayed. Colors triggered by certain sounds, as well as other synesthetic visual experiences, are referred to as *photisms*.
 
 With our project, we want to invert this concept: our application will extract music from images.
 
@@ -19,10 +19,10 @@ In the study of the project, we found other great sources of information at:
 
 ### GRAPHICAL USER INTERFACE
 ![inital](/images/initial.png)
-As you can see from the picture, the GUI is minimal. The only thing that the user has to do in order to apply the reverse chromestesia is to upload an image from his/her device and let the tool do the job for him.
+As you can see from the picture, the GUI is minimal. The only thing that the user has to do in order to apply the reverse chromesthesia is to upload an image from his/her device and let the tool do the job for him.
 ![fina](/images/fina.png)
 After that, a quantized version of the image is shown on the page and the user can start to play it with his/her mouse by clicking on its colors. But there is more! Let's analyse from top to bottom the components of the gui:
-* **Reverse Chromestesia** text field: simply the title;
+* **Reverse Chromesthesia** text field: simply the title;
 * **Select tonic**: drop-down menu that lets the user choose the tonic of the scale between the 12 notes of the chromatic scale;
 * **the Color Wheel** represent the 12 notes. The wheel turns so thet the most prominent color is at the top, and the colors/notes are highlited when the corresponding chord is played. Inside the wheel there's the name of the chord that the user is currently playing and the degree of the chord with respect to the tonic is between brackets;
 * **Resulting mode**: mode of the image;
