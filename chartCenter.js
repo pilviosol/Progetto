@@ -1,21 +1,21 @@
-/********************************************************
-* Modification to Chart.js in order to obtain text at the 
-* center of donut chart:
-********************************************************/
+/******************************************************************************************************************
+* Modification to Chart.js in order to obtain text at the center of donut chart:
+* Taken from: https://stackoverflow.com/questions/20966817/how-to-add-text-inside-the-doughnut-chart-using-chart-js
+*******************************************************************************************************************/
 Chart.pluginService.register({
     beforeDraw: function(chart) {
       if (chart.config.options.elements.center) {
         // Get ctx from string
         var ctx = chart.chart.ctx;
-  
         // Get options from the center object in options
-        var centerConfig = chart.config.options.elements.center;
+        var centerConfig = chart.config.options.elements.center; 
         var fontStyle = centerConfig.fontStyle || 'Arial';
         var txt = centerConfig.text;
         var color = centerConfig.color || '#000';
         var maxFontSize = centerConfig.maxFontSize || 75;
         var sidePadding = centerConfig.sidePadding || 20;
-        var sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2)
+        var sidePaddingCalculated = (sidePadding / 100) * (chart.innerRadius * 2); 
+
         // Start with a base font of 30px
         ctx.font = "30px " + fontStyle;
   
@@ -50,7 +50,7 @@ Chart.pluginService.register({
         var centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
         ctx.font = fontSizeToUse + "px " + fontStyle;
         ctx.fillStyle = color;
-  
+
         if (!wrapText) {
           ctx.fillText(txt, centerX, centerY);
           return;
