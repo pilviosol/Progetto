@@ -18,9 +18,9 @@ In the study of the project, we found other great sources of information at:
 * http://linesandcolors.com/2008/05/12/history-of-the-color-wheel/.
 
 ### GRAPHICAL USER INTERFACE
-![inital](/images/initial.png)
+![inital2](/images/initial2.png)
 As you can see from the picture, the GUI is minimal. The only thing that the user has to do in order to apply the reverse chromestesia is to upload an image from his/her device and let the tool do the job for him.
-![fina](/images/fina.png)
+![fina2](/images/fina2.png)
 After that, a quantized version of the image is shown on the page and the user can start to play it with his/her mouse by clicking on its colors. But there is more! Let's analyse from top to bottom the components of the gui:
 * **Reverse Chromestesia** text field: simply the title;
 * **Select tonic**: drop-down menu that lets the user choose the tonic of the scale between the 12 notes of the chromatic scale;
