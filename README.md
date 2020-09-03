@@ -40,8 +40,6 @@ The first block is pretty self explaining: the application starts with the user 
 3. Construction of triads and quadriads: depending on the mode and on the root note that is played, the names of the triads and quadriads are picked by a "dictionary" and shown in the center of the wheel.
 Everything is ready, the image can be played doing fancy chord progressions.
 
-### FUTURE DEVELOPMENTS
-
 ### YOUTUBE LINK
 https://youtu.be/avKKM5vgr0M
 
