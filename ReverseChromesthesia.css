@@ -13,6 +13,7 @@
   background-image: none;
 }
 
+/* Background before an image is loaded*/
 .initial-bg {
   position: fixed;
   background-color: black;
@@ -24,6 +25,7 @@
   z-index: -1;
 }
 
+/* Background after an image is loaded*/
 .updated-bg {
   position: fixed;
   left: 0;
@@ -45,12 +47,14 @@
   text-align: center;
 }
 
+/* Container for the elements on the left side of the page*/
 #left-wrap {
   display: inline-block;
   vertical-align: top;
   padding-right: 25px;
 }
 
+/* Container for the elements on the right side of the page*/
 #right-wrap {
   display: inline-block;
   height: 100%;
@@ -58,6 +62,7 @@
   transform: translateX(50px);
 }
 
+/* Container for the Color Wheel*/
 .color-wheel-wrap {
   position: relative;
   width: 400;
@@ -66,6 +71,7 @@
   margin: 0 auto;
 }
 
+/* Tells the resulting mode */
 #mode-visualizer {
   text-align: center;
   font-family:'Roboto Mono', monospace;
@@ -76,11 +82,13 @@
   margin-top: 10px;
 }
 
+/* Playable image */
 #myimage {
   margin: 20px;
   border-radius: 5px;
 }
 
+/* Container for image uploader */
 #file-upload {
   position: relative;
   background-color: rgb(0,0,0);
@@ -90,6 +98,7 @@
   padding: 20px;
 }
 
+/* Reposition elements after the image is uploaded */
 .pre-upload {
   margin-top: 50%;
   transform: translateY(-50%);
@@ -100,6 +109,7 @@
   text-align: center;
 }
 
+/* File reader */
 .file-upload-input {
   position: absolute;
   margin: 0;
@@ -143,6 +153,7 @@
   padding: 60px 0;
 }
 
+/* Change image button */
 .change-image {
   width: 200px;
   margin: 0;
@@ -172,6 +183,7 @@
   transition: all .2s ease;
 }
 
+/* Label for the quadriad toggle switch*/
 #quadriad-text {
   position: relative;
   text-align: center;
@@ -180,9 +192,10 @@
   margin: 0 auto;
   text-shadow: 2px 2px 4px #000000;
   margin-top: 15px;
+  display: none;
 }
 
-/* The switch - the box around the slider */
+/* The quadriad switch - the box around the slider */
 .switch {
   position: relative;
   text-align: center;
@@ -242,11 +255,7 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-#quadriad-text {
-  text-align: center;
-  display: none;
-}
-
+/* Drop-down selector for the Tonic */
 #select-tonic {
     position: relative;
     font-family: 'Roboto Mono', monospace;

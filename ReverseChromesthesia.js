@@ -16,7 +16,7 @@ osc4.type = 'sawtooth';
 // Lowpass filter
 f = audioCtx.createBiquadFilter(); 
 f.type = 'lowpass';
-f.frequency.setValueAtTime(2500, audioCtx.currentTime);
+f.frequency.setValueAtTime(2500, audioCtx.currentTime); // Set cutoff at 2500 Hz
 // Reverb
 reverbNode = audioCtx.createConvolver();
 /* 
@@ -32,7 +32,7 @@ audioCtx.decodeAudioData(reverbSoundArrayBuffer,
     alert("Error when decoding audio data" + e.err);
   }
 );
-// Connections between nodes
+// Create gain nodes
 gbass = audioCtx.createGain();
 gr = audioCtx.createGain();
 g3 = audioCtx.createGain();
@@ -47,6 +47,7 @@ g3.gain.value = singleGain;
 g5.gain.value = singleGain;
 g7.gain.value = 0; // Gain for the 7th
 g.gain.value = 0; // Gain for the triad + bass
+// Connect nodes
 osc0.connect(gbass);
 osc1.connect(gr);
 osc2.connect(g3);
@@ -88,6 +89,7 @@ var modes = [lydian, ionian, mixolydian, dorian, aeolian, phrygian, locrian]; //
 var resulting_mode = []; // Mode obtained from the image in binary form
 var mode_intervals = []; // Intervals in semitones (from the tonic) of the obtained mode. Contains 7 values.
 var index; // Distance in semitones between the root note of the playing chord and the the tonic
+// Intervals of the playing chords w/ respect to the root
 var int1;
 var int2;
 var int3;
@@ -250,7 +252,7 @@ function readURL(input) {
         // Quantize image
 		    var q = new RgbQuant(opts);
         q.sample(imageData);
-        var outA = q.reduce(imageData);
+        var outA = q.reduce(imageData); // Image palette is reduced (image is quantized)
         var uint8clamped = new Uint8ClampedArray(outA.buffer);
         var DAT = new ImageData(uint8clamped, width, height);
         context.putImageData(DAT, 0, 0);
@@ -308,8 +310,8 @@ function readURL(input) {
         chart.update();
         /* 
         * Here's how we decide what's the most similar mode: for each element in common between the
-        * resulting scale and one of the modes, the score of said mode increases by a number which is
-        * proportional to the occurrence of that element (color/note).
+        * resulting scale and one of the modes, the score of said mode increases by a number which 
+        * coincides to the occurrence of that element (color/note) expressed in number of pixels.
         * The mode with the highest score is the chosen one.
         */
         resulting_scale = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; 
@@ -328,6 +330,7 @@ function readURL(input) {
         var mode_name= modeName(resulting_mode);
         //var mode_visualizer = document.getElementById('mode-visualizer');
         mode_visualizer.innerHTML = "Resulting mode: " + mode_name;
+        // Calculate the intervals in semitones of the resulting mode and store them
         for (i = 0; i < 12; i++) {
           if (resulting_mode[i])
             mode_intervals.push(i);
@@ -343,8 +346,8 @@ function readURL(input) {
         audioCtx.resume();
         var mouseX = parseInt(e.offsetX);
         var mouseY = parseInt(e.offsetY);
-        var pxData = context.getImageData(mouseX, mouseY, 1, 1);
-        var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]];
+        var pxData = context.getImageData(mouseX, mouseY, 1, 1); // Image data at mouse position, 1px x 1px
+        var eyeDropperColor = [pxData.data[0], pxData.data[1], pxData.data[2]]; // RGB values of the clicked pixel
         var grey = false;
 
         if (eyeDropperColor[0] == eyeDropperColor[1] && eyeDropperColor[0] == eyeDropperColor[2]) { // Check if the color has a hue (is not grey)
@@ -400,7 +403,8 @@ function readURL(input) {
               chord = triad;
             }
             // Higlight the colors that ar currently playing on the wheel, show the chord name at the center
-            chart.data.datasets[0].backgroundColor = [ "#FF0000",
+            // Restore the wheel colors before updating them, or the highlited colors will remain highlited
+            chart.data.datasets[0].backgroundColor = [ "#FF0000", 
                                                        "#FF7F00",
                                                        "#FFFF00",
                                                        "#7FFF00",
@@ -413,7 +417,7 @@ function readURL(input) {
                                                        "#FF00FF",
                                                        "#FF007F"
                                                      ];
-            arrayRotate(chart.data.datasets[0].backgroundColor, rot);
+            arrayRotate(chart.data.datasets[0].backgroundColor, rot); // Put the wheel in the right position
             // Darken the playing colors with the pSBC function of 90%:
             chart.data.datasets[0].backgroundColor[index%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index)%12]);
             chart.data.datasets[0].backgroundColor[(index + int1)%12] = pSBC(-0.9, chart.data.datasets[0].backgroundColor[(index + int1)%12]);
@@ -952,16 +956,6 @@ function startAudio() {
   const f = audioCtx.createBiquadFilter(); 
   f.type = 'lowpass';
   f.frequency.setValueAtTime(2500, audioCtx.currentTime);
-  // White noise
-  /*var bufferSize = 2 * audioCtx.sampleRate,
-      noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-      output = noiseBuffer.getChannelData(0);
-  for (var i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
-  }
-  var whiteNoise = audioCtx.createBufferSource();
-  whiteNoise.buffer = noiseBuffer;
-  whiteNoise.loop = true;*/
   // Reverb
   const reverbNode = audioCtx.createConvolver();
   /* 
@@ -991,7 +985,6 @@ function startAudio() {
   g3.gain.value = singleGain;
   g5.gain.value = singleGain;
   g7.gain.value = 0; // Gain for the 7th
-  //gn.gain.value = 0 // Gain for the noise osc
   g.gain.value = 0; // Gain for the triad + bass
   osc0.connect(gbass);
   osc1.connect(gr);
@@ -1004,12 +997,8 @@ function startAudio() {
   g5.connect(f);
   g7.connect(f);
   f.connect(g);
-  //whiteNoise.connect(gn);
-  //gn.connect(g);
   g.connect(reverbNode);
   reverbNode.connect(audioCtx.destination);
-  //Starting sources:
-  //whiteNoise.start(0);
   osc0.start();
   osc1.start();
   osc2.start();
