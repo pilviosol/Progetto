@@ -43,3 +43,7 @@ Everything is ready, the image can be played doing fancy chord progressions.
 ### FUTURE DEVELOPMENTS
 
 ### YOUTUBE LINK
+https://youtu.be/avKKM5vgr0M
+
+### WORKING VERSION OF THE APPLICATION (HOSTED BY GITHUB PAGES)
+http://pilviosol.github.io
